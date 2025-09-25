@@ -9,6 +9,7 @@ import Map from "./Pages/Map";
 import Notification from "./Pages/Notification";
 import Report from "./Pages/Report";
 import PublicRoute from "./utils/PublicRoute/PublicRoute";
+import { AuthProvider } from "./context/AuthContext.jsx";
 
 function App() {
   const router = createBrowserRouter([
@@ -56,7 +57,11 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
 export default App;

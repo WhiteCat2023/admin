@@ -1,23 +1,27 @@
-import { createUser, newUserDoc, setRole, signInUser, signOutUser, userForgotPassword } from "../services/firebase/auth.sevices";
-// import { HttpStatus }  from "../../enums/status";
-import { HttpStatus } from "@/enums/status";
+import { createUser, newUserDoc, signInUser, signOutUser, userForgotPassword } from "../services/firebase/auth.sevices";
+import { HttpStatus } from "../enums/status";
 import { userDocRef } from "../services/firebase/users.services";
+import { sendEmailVerification } from "firebase/auth";
 
 export const signIn = async ( req ) => {
     const { email, password } = req;
     try{
         const userData = await signInUser(email, password);
-        
-        return { 
-            status: HttpStatus.OK, 
+
+        if (!userData.user.emailVerified) {
+            throw new Error("Please verify your email before signing in.");
+        }
+
+        return {
+            status: HttpStatus.OK,
             message: "User signed in successfully",
-            data: userData  
+            data: userData
         };
     }catch(error){
         console.error(`Sign In Error: ${error.message}`);
-        return { 
-            status: HttpStatus.BAD_REQUEST, 
-            message: error.message 
+        return {
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message
         };
     };
 };
@@ -29,23 +33,23 @@ export const checkUserIfExist = ( uid ) => {
 }
 
 export const signUp = async ( req ) => {
-    const { email, password, role } = req;
+    const { email, password } = req;
     try{
         const userCredentials = await createUser(email, password);
-        await newUserDoc(userCredentials, role, req);
-        // const {uid} = userCredentials.user;
-        // setRole(uid)
-        // console.log(userDoc)
-
-        return { 
-            status: HttpStatus.OK, 
+        console.log(userCredentials.user);
+        await newUserDoc(userCredentials, req);
+        await sendEmailVerification(userCredentials.user, {
+            url: 'http://localhost:3000/login'
+        });
+        return {
+            status: HttpStatus.OK,
             message: "User created successfully" ,
         }
     }catch(error){
         console.error(`Creating User Error: ${error.message}`);
-        return { 
-            status: HttpStatus.BAD_REQUEST, 
-            message: error.message 
+        return {
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message
         };
     };
 };

@@ -1,6 +1,6 @@
 // working on this
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, signInWithCredential} from "firebase/auth";
-import { auth, db } from "../../config/firebase.config";
+import { auth, db } from "../../config/firebase";
 import { setDoc,doc } from "firebase/firestore";
 
 export async function signInUser(email, password){
@@ -23,7 +23,7 @@ export const signInWithToken = async (credential) => {
     return await signInWithCredential(auth, credential)     
 }
 
-export async function newUserDoc(userCredentials, role, extra) {
+export async function newUserDoc(userCredentials, req) {
   try {
     const {
       uid,
@@ -32,26 +32,23 @@ export async function newUserDoc(userCredentials, role, extra) {
       phoneNumber,
       metadata,
       providerData,
-      firstName,
-      lastName
     } = userCredentials.user;
 
-    if (!role) throw new Error("Role not specified");
+    const {firstName, lastName} = req
 
     const providerId = providerData?.[0]?.providerId || null;
     const photoUrl = providerData?.[0]?.photoURL || null;
 
     await setDoc(doc(db, "users", uid), {
-      name: displayName,
+      name: displayName || `${firstName} ${lastName}`,
+      firstName,
+      lastName,
       email,
       phone: phoneNumber || null,
       photoUrl,
       providerId,
       createdAt: metadata?.creationTime || null,
       lastSignedIn: metadata?.lastSignInTime || null,
-      role,
-      firstName: extra.firstName,
-      lastName: extra.lastName
     });
   } catch (error) {
     console.error(`Firestore Error: ${error.message}`);

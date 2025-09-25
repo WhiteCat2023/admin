@@ -1,5 +1,5 @@
 import { setDoc, doc, onSnapshot, collection, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../../config/firebase.config";
+import { db } from "../../config/firebase";
 
 /**
  * This function can be use to make reference of documents in the firestore. It accepts a collection param and 

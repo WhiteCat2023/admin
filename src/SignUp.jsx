@@ -21,8 +21,14 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Link from "@mui/material/Link";
+import { signUp } from "./utils/controller/auth.controller";
+import { Role } from "./utils/enums/roles";
+import { useAuth } from "./context/AuthContext";
+import { useEffect } from "react";
+import Swal from 'sweetalert2';
 
 function SignUp() {
+  const { user } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -36,6 +42,29 @@ function SignUp() {
   const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [termsError, setTermsError] = useState("");
+
+  useEffect(() => {
+    if (user && user.emailVerified) {
+      window.location.href = "/dashboard";
+    }
+  }, [user]);
+
+  // Validation functions
+  const validateName = (name) => {
+    const regex = /^[A-Za-z\s]+$/;
+    return regex.test(name);
+  };
+
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    // Minimum 8 characters, at least one letter, one number and one special character
+    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+    return regex.test(password);
+  };
 
   const handleFirstNameChange = (e) => {
     const value = e.target.value;
@@ -147,23 +176,27 @@ function SignUp() {
     }
 
     try {
-      // ✅ Create user in Firebase
-      await createUserWithEmailAndPassword(auth, email, password);
-
-      // Redirect to dashboard (or login first)
-      window.location.href = "/dashboard";
+      // ✅ Create user in Firebase with form data
+      const formData = {
+        email,
+        password,
+        firstName,
+        lastName,
+      };
+      const response = await signUp(formData);
+      if (response.status === 200) {
+        await Swal.fire({
+          title: 'Sign up success!',
+          text: 'Check your email for verification',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        setPasswordError(response.message || "Signup failed.");
+      }
     } catch (error) {
       console.error(error);
-
-      if (error.code === "auth/email-already-in-use") {
-        setEmailError("This email is already registered.");
-      } else if (error.code === "auth/invalid-email") {
-        setEmailError("Enter a valid email address.");
-      } else if (error.code === "auth/weak-password") {
-        setPasswordError("Password is too weak.");
-      } else {
-        setPasswordError(error.message);
-      }
+      setPasswordError(error.message);
     } finally {
       setLoading(false);
     }
@@ -212,17 +245,17 @@ function SignUp() {
               }}
             ></Box>
             <Typography
+              variant="subtitle1"
+              fontWeight={500}
+              sx={{ m: 0, textAlign: "center", color: "#2ED573" }}
+            >
+              Welcome Let's set you up first!
+            </Typography>
+            <Typography
               variant="h5"
               fontWeight={600}
               sx={{ mb: 3, textAlign: "center", color: "#2ED573" }}
             >
-              <Typography
-                variant="h6"
-                fontWeight={500}
-                sx={{ m: 0, textAlign: "center", color: "#2ED573" }}
-              >
-                Welcome Let's set you up first!
-              </Typography>
               Greetings!
             </Typography>
             <FormControl fullWidth sx={{ mb: 2 }} error={!!firstNameError}>

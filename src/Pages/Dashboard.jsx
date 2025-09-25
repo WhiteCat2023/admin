@@ -15,22 +15,23 @@ import InsertChartIcon from "@mui/icons-material/InsertChart";
 import ReportIcon from "@mui/icons-material/Report";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useEffect, useMemo, useState } from "react";
-import {
-  getAllReports,
-  getAllReportsWithFilter,
-  getAllTierReportsWithFilter,
-} from "../utils/controller/report.controller";
+import { getAllReports } from "../utils/controller/report.controller";
 import { HttpStatus } from "../utils/enums/status";
-useMemo;
+import { format } from "date-fns";
+import { useAuth } from "../context/AuthContext";
 
 function Dashboard() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showContent, setShowContent] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+
+  const combinedLoading = loading || authLoading;
 
   useEffect(() => {
     fetchData();
-  }, []);
+    console.log(user);
+  }, [user]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -64,10 +65,9 @@ function Dashboard() {
   const emergencyReports = reports.filter(
     (report) => report.tier.toLowerCase() === "emergency"
   );
-  const trafficReports = reports.filter(
+  const highTierReports = reports.filter(
     (report) => report.tier.toLowerCase() === "high"
   );
-
 
   const latestReport = useMemo(() => {
     if (!pendingReports.length) return null;
@@ -81,6 +81,36 @@ function Dashboard() {
 
     return sortedReports[0]; // Return the first (latest) report
   }, [pendingReports]);
+
+  const latestEmergencyReport = useMemo(() => {
+    if (!emergencyReports.length) return null;
+
+    // Sort and get the latest report
+    const sortedReports = [...emergencyReports]
+      .sort((a, b) => {
+        const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+        const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+        return dateB - dateA; // Sort descending (newest first)
+      })
+      .slice(0, 3); // Take only the first 3 items
+
+    return sortedReports;
+  }, [emergencyReports]);
+
+  const latestRepondedReport = useMemo(() => {
+    if (!respondedReports.length) return null;
+
+    // Sort and get the latest report
+    const sortedReports = [...respondedReports]
+      .sort((a, b) => {
+        const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+        const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+        return dateB - dateA; // Sort descending (newest first)
+      })
+      .slice(0, 3); // Take only the first 3 items
+
+    return sortedReports; // Return the first (latest) report
+  }, [respondedReports]);
 
   // Skeleton components
   const StatCardSkeleton = () => (
@@ -121,10 +151,19 @@ function Dashboard() {
     <Card elevation={3} sx={{ flexGrow: 1, borderRadius: 4 }}>
       <CardContent>
         <Skeleton variant="text" width="60%" height={32} sx={{ mb: 2 }} />
-        <Skeleton variant="text" width="100%" height={24} sx={{ mb: 1 }} />
-        <Skeleton variant="text" width="90%" height={24} sx={{ mb: 1 }} />
-        <Skeleton variant="text" width="80%" height={24} sx={{ mb: 2 }} />
-        <Skeleton variant="text" width="40%" height={24} />
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={1}
+          sx={{ mb: 1 }}
+        />
+        {[1, 2, 3].map((item) => (
+          <Card key={item} sx={{ mb: 1, borderRadius: 2 }} elevation={2}>
+            <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
+              <Skeleton variant="rectangular" width="100%" height={60} />
+            </CardContent>
+          </Card>
+        ))}
       </CardContent>
     </Card>
   );
@@ -161,7 +200,7 @@ function Dashboard() {
         />
         <Grid container spacing={2}>
           {[1, 2, 3].map((item) => (
-            <Grid item size={4} key={item}>
+            <Grid size={4} key={item}>
               <Skeleton variant="text" width="100%" height={32} />
               <Skeleton variant="text" width="60%" height={20} />
             </Grid>
@@ -193,10 +232,10 @@ function Dashboard() {
           </Grid>
 
           {/* Side cards skeleton */}
-          <Grid size={4} md={6} sx={{ display: "flex" }}>
+          <Grid size={4} sx={{ display: "flex" }}>
             <SideCardSkeleton />
           </Grid>
-          <Grid size={4} md={6} sx={{ display: "flex" }}>
+          <Grid size={4} sx={{ display: "flex" }}>
             <SideCardSkeleton />
           </Grid>
           <Grid size={4} sx={{ display: "flex" }}>
@@ -206,6 +245,72 @@ function Dashboard() {
       </Box>
     </Fade>
   );
+
+  const getTierColor = (item) => {
+    const tier = item.tier?.toLowerCase();
+    if (tier === "emergency") return "#ff0000";
+    if (tier === "high") return "#ffbb00";
+    if (tier === "medium") return "#fffb00";
+    if (tier === "low") return "#00ff22";
+    return "#666666"; // default color
+  };
+
+  const renderListItem = (item) => {
+    const formattedDate = item.timestamp?.toDate
+      ? format(item.timestamp.toDate(), "MMM d | h:mma")
+      : "";
+    return (
+      <Card key={item.id} sx={{ mb: 1, borderRadius: 2 }} elevation={2}>
+        <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
+          <Divider
+            orientation="vertical"
+            sx={{
+              height: 70, // Match the text height
+              borderRightWidth: 3, // Thicker line
+              borderColor: "#2ED573", // Color
+              borderRadius: 2,
+              mr: 2, // More margin for better spacing
+            }}
+          />
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            <Box>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                fontWeight={700}
+                fontSize={16}
+              >
+                {item.title}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" fontSize={12}>
+                {formattedDate}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" fontSize={12}>
+                Status: {item.status}
+              </Typography>
+            </Box>
+            <Typography
+              variant="body1"
+              color={getTierColor(item)}
+              sx={{
+                textShadow: "1px 1px 1px rgb(0, 0, 0)",
+              }}
+              fontSize={12}
+            >
+              {item.tier}
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
 
   const shiningEffectStyles = {
     position: "relative",
@@ -315,13 +420,13 @@ function Dashboard() {
                       color="text.primary"
                       sx={{ fontWeight: 600, fontSize: 18 }}
                     >
-                      {latestReport.title || "No Latest Pending Report"}
+                      {latestReport?.title || "No Latest Pending Report"}
                     </Typography>
                     <Typography
                       color="text.secondary"
                       sx={{ mt: 1, fontSize: 14 }}
                     >
-                      {latestReport.description || "No Latest Pending Report"}
+                      {latestReport?.description || "No Latest Pending Report"}
                     </Typography>
                   </Box>
 
@@ -360,16 +465,17 @@ function Dashboard() {
             </Card>
           </Grid>
 
-          <Grid size={4} md={6} sx={{ display: "flex" }}>
+          <Grid size={4} sx={{ display: "flex" }}>
             <Card elevation={3} sx={{ flexGrow: 1, borderRadius: 4 }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   Reports by TierList
                 </Typography>
                 <Divider sx={{ my: 1 }} />
-                <Typography>🚨 Emergency</Typography>
-                <Typography>🚗 Traffic Incidents</Typography>
-                <Typography>📑 Summons</Typography>
+                {latestEmergencyReport
+                  ? latestEmergencyReport.map((item) => renderListItem(item))
+                  : renderListItem({ title: "No Emergency Reports Found" })}
+
                 <Button size="small" sx={{ mt: 1 }}>
                   View all
                 </Button>
@@ -377,32 +483,16 @@ function Dashboard() {
             </Card>
           </Grid>
 
-          <Grid size={4} md={6} sx={{ display: "flex" }}>
+          <Grid size={4} sx={{ display: "flex" }}>
             <Card elevation={3} sx={{ flexGrow: 1, borderRadius: 4 }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   History
                 </Typography>
                 <Divider sx={{ my: 1 }} />
-                <Card>
-                  <CardContent sx={{ display: "flex", alignItems: "center" }}>
-                    <Divider
-                      orientation="vertical"
-                      sx={{
-                        mb: 1,
-                        width: "3px", // thicker line
-                        backgroundColor: "grey.500", // optional: change color
-                        mr: 1,
-                      }}
-                    />
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Recent Tasks
-                    </Typography>
-                  </CardContent>
-                </Card>
-
-                <Typography>Pothole Spotted</Typography>
-                <Typography>E-bike Accident</Typography>
+                {latestRepondedReport
+                  ? latestRepondedReport.map((item) => renderListItem(item))
+                  : renderListItem({ title: "No Emergency Reports Found" })}
                 <Button size="small" sx={{ mt: 1 }}>
                   View all Tasks
                 </Button>
@@ -427,25 +517,23 @@ function Dashboard() {
                 >
                   <AccountCircleIcon sx={{ fontSize: 60 }} />
                 </Avatar>
-                <Typography variant="h6">Admin</Typography>
-                <Typography color="text.secondary">
-                  Santo Tomas, City
-                </Typography>
+                <Typography variant="h6">{user?.displayName}</Typography>
+                <Typography variant="body1" sx={{fontSize: 14, color: "#adadadff"}}>{user?.email}</Typography>
                 <Divider sx={{ my: 2 }} />
                 <Grid container spacing={2}>
-                  <Grid item size={4}>
+                  <Grid size={4}>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       28
                     </Typography>
                     <Typography variant="caption">Tasks</Typography>
                   </Grid>
-                  <Grid item size={4}>
+                  <Grid size={4}>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       643
                     </Typography>
                     <Typography variant="caption">Reports</Typography>
                   </Grid>
-                  <Grid item size={4}>
+                  <Grid size={4}>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       76
                     </Typography>
@@ -462,8 +550,8 @@ function Dashboard() {
 
   return (
     <>
-      {loading && <SkeletonLoader />}
-      {!loading && <DashboardContent />}
+      {combinedLoading && <SkeletonLoader />}
+      {!combinedLoading && <DashboardContent />}
     </>
   );
 }

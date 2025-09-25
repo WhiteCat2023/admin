@@ -4,7 +4,7 @@ import { auth } from "../config/firebase";
 import { useEffect, useState } from "react";
 import { CircleLoader } from "react-spinners";
 
-function ProtectedRoute() {
+function  ProtectedRoute() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +32,8 @@ function ProtectedRoute() {
 
   if (!user) {
     // 🚫 no replace → user can still go back after logging in
-    return <Navigate to="/login" />;
+    // Use replace to prevent navigation flooding
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
