@@ -9,7 +9,7 @@ import FormHelperText from "@mui/material/FormHelperText";
 import Button from "@mui/material/Button";
 import { useState } from "react";
 import Divider from "@mui/material/Divider";
-import { auth } from "./config/firebase";
+import { auth } from "./utils/config/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import Swal from "sweetalert2";
 import InputAdornment from "@mui/material/InputAdornment";

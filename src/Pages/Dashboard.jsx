@@ -10,20 +10,21 @@ import {
   Skeleton,
   Fade,
 } from "@mui/material";
-import { auth } from "../config/firebase";
+import { auth } from "../utils/config/firebase";
 import InsertChartIcon from "@mui/icons-material/InsertChart";
 import ReportIcon from "@mui/icons-material/Report";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getAllReports,
   getAllReportsWithFilter,
-} from "../controller/report.controller";
-import { HttpStatus } from "../enums/status";
+  getAllTierReportsWithFilter,
+} from "../utils/controller/report.controller";
+import { HttpStatus } from "../utils/enums/status";
+useMemo;
 
 function Dashboard() {
-  const [pendingReports, setPendingReports] = useState({});
-  const [respondedReports, setRespondedReports] = useState({});
+  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showContent, setShowContent] = useState(false);
 
@@ -35,7 +36,13 @@ function Dashboard() {
     setLoading(true);
     setShowContent(false);
     try {
-      await Promise.all([fetchPending(), fetchReports()]);
+      const result = await getAllReports();
+      if (result.status === HttpStatus.OK) {
+        setReports(result.data);
+        console.log("Reports:", result.data);
+      } else {
+        console.warn("Failed to fetch reports:", result);
+      }
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
@@ -47,33 +54,33 @@ function Dashboard() {
     }
   };
 
-  const fetchReports = async () => {
-    try {
-      const result = await getAllReports();
-      if (result.status === HttpStatus.OK) {
-        setPendingReports(result.data);
-        console.log("Reports:", result.data);
-      } else {
-        console.warn("Failed to fetch reports:", result);
-      }
-    } catch (err) {
-      console.error("Error fetching reports:", err);
-    }
-  };
+  const pendingReports = reports.filter(
+    (report) => report.status.toLowerCase() === "pending"
+  );
+  const respondedReports = reports.filter(
+    (report) => report.status.toLowerCase() === "responded"
+  );
 
-  const fetchPending = async () => {
-    try {
-      const result = await getAllReportsWithFilter("pending");
-      if (result.status === HttpStatus.OK) {
-        setRespondedReports(result.data);
-        console.log("Reports:", result.data);
-      } else {
-        console.warn("Failed to fetch reports:", result);
-      }
-    } catch (err) {
-      console.error("Error fetching reports:", err);
-    }
-  };
+  const emergencyReports = reports.filter(
+    (report) => report.tier.toLowerCase() === "emergency"
+  );
+  const trafficReports = reports.filter(
+    (report) => report.tier.toLowerCase() === "high"
+  );
+
+
+  const latestReport = useMemo(() => {
+    if (!pendingReports.length) return null;
+
+    // Sort and get the latest report
+    const sortedReports = [...pendingReports].sort((a, b) => {
+      const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+      const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+      return dateB - dateA; // Sort descending (newest first)
+    });
+
+    return sortedReports[0]; // Return the first (latest) report
+  }, [pendingReports]);
 
   // Skeleton components
   const StatCardSkeleton = () => (
@@ -200,6 +207,29 @@ function Dashboard() {
     </Fade>
   );
 
+  const shiningEffectStyles = {
+    position: "relative",
+    overflow: "hidden",
+    transition: "all 0.3s ease-in-out",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: "-100%",
+      width: "100%",
+      height: "100%",
+      background:
+        "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)",
+      transition: "left 0.5s ease-in-out",
+    },
+    "&:hover::before": {
+      left: "100%",
+    },
+    "&:hover": {
+      boxShadow: "0 8px 25px rgba(0, 0, 0, 0.15)",
+    },
+  };
+
   const DashboardContent = () => (
     <Fade in={showContent} timeout={600}>
       <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -262,19 +292,70 @@ function Dashboard() {
           {/* Latest report full width */}
           <Grid size={12} sx={{ display: "flex" }}>
             <Card elevation={3} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                  LATEST REPORT
-                </Typography>
-                <Typography color="text.secondary">
-                  The latest incident report will be placed here
-                </Typography>
-                <Button
-                  variant="contained"
-                  sx={{ mt: 2, backgroundColor: "#2ED573" }}
+              <CardContent sx={{ display: "flex", gap: 2 }}>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    minWidth: 200,
+                  }}
                 >
-                  Respond
-                </Button>
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      gutterBottom
+                      sx={{ fontWeight: 600 }}
+                    >
+                      LATEST REPORT
+                    </Typography>
+                    <Typography
+                      color="text.primary"
+                      sx={{ fontWeight: 600, fontSize: 18 }}
+                    >
+                      {latestReport.title || "No Latest Pending Report"}
+                    </Typography>
+                    <Typography
+                      color="text.secondary"
+                      sx={{ mt: 1, fontSize: 14 }}
+                    >
+                      {latestReport.description || "No Latest Pending Report"}
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    sx={{
+                      mt: 2,
+                      backgroundColor: "#2ED573",
+                      px: 7,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Respond
+                  </Button>
+                </Box>
+                {latestReport?.images?.[0] && (
+                  <Box
+                    sx={{
+                      flex: 1,
+                      minHeight: 200,
+                      width: "50%",
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      backgroundImage: `url(${latestReport.images[0]})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      ...shiningEffectStyles,
+                    }}
+                  />
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -388,4 +469,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-z

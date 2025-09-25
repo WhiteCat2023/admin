@@ -10,7 +10,7 @@ import FormHelperText from "@mui/material/FormHelperText";
 import LoginPicture from "./assets/LoginPicture.png";
 import Logo from "./assets/Logo.png";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "./config/firebase";
+import { auth } from "./utils/config/firebase";
 import Stack from "@mui/material/Stack";
 import Divider, { dividerClasses } from "@mui/material/Divider";
 import Ariba from "./assets/Ariba.png";

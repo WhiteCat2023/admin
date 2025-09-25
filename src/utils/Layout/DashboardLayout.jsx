@@ -16,7 +16,7 @@ import {
   Button,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import Ariba from "../assets/Ariba.png";
+import Ariba from "../../assets/Ariba.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase";

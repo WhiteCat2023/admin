@@ -11,7 +11,7 @@ import SignUpPicture from "./assets/SignUpPicture.png";
 import Ariba from "./assets/Ariba.png";
 import Logo from "./assets/Logo.png";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "./config/firebase";
+import { auth } from "./utils/config/firebase";
 import Divider, { dividerClasses } from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import InputAdornment from "@mui/material/InputAdornment";

@@ -1,14 +1,14 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Login from "./Login";
-import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
+import ProtectedRoute from "./utils/ProtectedRoute/ProtectedRoute";
 import SignUp from "./SignUp";
 import ForgotPassword from "./ForgotPassword";
-import DashboardLayout from "./Layout/DashboardLayout";
+import DashboardLayout from "./utils/Layout/DashboardLayout";
 import Dashboard from "./Pages/Dashboard";
 import Map from "./Pages/Map";
 import Notification from "./Pages/Notification";
 import Report from "./Pages/Report";
-import PublicRoute from "./PublicRoute/PublicRoute";
+import PublicRoute from "./utils/PublicRoute/PublicRoute";
 
 function App() {
   const router = createBrowserRouter([
