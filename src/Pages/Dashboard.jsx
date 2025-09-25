@@ -49,11 +49,8 @@ function Dashboard() {
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
-      // Small delay to ensure smooth transition
-      setTimeout(() => {
-        setLoading(false);
-        setTimeout(() => setShowContent(true), 150);
-      }, 300);
+      setLoading(false);
+      setShowContent(true);
     }
   };
 
@@ -213,39 +210,40 @@ function Dashboard() {
   );
 
   const SkeletonLoader = () => (
-    <Fade in={loading} timeout={500}>
-      <Box sx={{ flexGrow: 1, p: 3 }}>
-        {/* Header Skeleton */}
-        <Skeleton variant="text" width="40%" height={32} sx={{ mb: 1 }} />
-        <Skeleton variant="text" width="20%" height={48} sx={{ mb: 3 }} />
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Typography variant="h6" color="text.secondary">
+        Greetings! Welcome Back
+      </Typography>
+      <Typography variant="h3" sx={{ fontWeight: "bold", mb: 3 }}>
+        ADMIN
+      </Typography>
 
-        {/* Top cards skeleton */}
-        <Grid container spacing={2} alignItems="stretch">
-          <Grid size={6} sx={{ display: "flex" }}>
-            <StatCardSkeleton />
-          </Grid>
-          <Grid size={6} sx={{ display: "flex" }}>
-            <StatCardSkeleton />
-          </Grid>
-
-          {/* Latest report skeleton */}
-          <Grid size={12} sx={{ display: "flex" }}>
-            <LatestReportSkeleton />
-          </Grid>
-
-          {/* Side cards skeleton */}
-          <Grid size={4} sx={{ display: "flex" }}>
-            <SideCardSkeleton />
-          </Grid>
-          <Grid size={4} sx={{ display: "flex" }}>
-            <SideCardSkeleton />
-          </Grid>
-          <Grid size={4} sx={{ display: "flex" }}>
-            <ProfileCardSkeleton />
-          </Grid>
+      {/* Top cards skeleton */}
+      <Grid container spacing={2} alignItems="stretch">
+        <Grid size={6} sx={{ display: "flex" }}>
+          <StatCardSkeleton />
         </Grid>
-      </Box>
-    </Fade>
+        <Grid size={6} sx={{ display: "flex" }}>
+          <StatCardSkeleton />
+        </Grid>
+
+        {/* Latest report skeleton */}
+        <Grid size={12} sx={{ display: "flex" }}>
+          <LatestReportSkeleton />
+        </Grid>
+
+        {/* Side cards skeleton */}
+        <Grid size={4} sx={{ display: "flex" }}>
+          <SideCardSkeleton />
+        </Grid>
+        <Grid size={4} sx={{ display: "flex" }}>
+          <SideCardSkeleton />
+        </Grid>
+        <Grid size={4} sx={{ display: "flex" }}>
+          <ProfileCardSkeleton />
+        </Grid>
+      </Grid>
+    </Box>
   );
 
   const getTierColor = (item) => {
