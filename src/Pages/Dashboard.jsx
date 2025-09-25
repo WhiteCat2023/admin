@@ -9,6 +9,7 @@ import {
   Divider,
   Skeleton,
   Fade,
+  Badge,
 } from "@mui/material";
 import { auth } from "../utils/config/firebase";
 import InsertChartIcon from "@mui/icons-material/InsertChart";
@@ -24,13 +25,14 @@ function Dashboard() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showContent, setShowContent] = useState(false);
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, userDoc } = useAuth();
 
   const combinedLoading = loading || authLoading;
 
   useEffect(() => {
     fetchData();
     console.log(user);
+    console.log(userDoc);
   }, [user]);
 
   const fetchData = async () => {
@@ -506,40 +508,64 @@ function Dashboard() {
               sx={{ flexGrow: 1, textAlign: "center", borderRadius: 4 }}
             >
               <CardContent>
-                <Avatar
+                <Badge
+                  color="success"
+                  overlap="circular"
+                  badgeContent=" "
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  invisible={pendingReports.length === 0}
                   sx={{
-                    bgcolor: "#2ED573",
                     width: 80,
                     height: 80,
-                    margin: "0 auto",
-                    mb: 2,
                   }}
                 >
-                  <AccountCircleIcon sx={{ fontSize: 60 }} />
-                </Avatar>
-                <Typography variant="h6">{user?.displayName}</Typography>
-                <Typography variant="body1" sx={{fontSize: 14, color: "#adadadff"}}>{user?.email}</Typography>
+                  <Avatar
+                    sx={{
+                      bgcolor: "#2ED573",
+                      width: 80,
+                      height: 80,
+                      margin: "0 auto",
+                      mb: 2,
+                    }}
+                  >
+                    <AccountCircleIcon sx={{ fontSize: 60 }} />
+                  </Avatar>
+                </Badge>
+
+                <Typography variant="h6">{userDoc?.name}</Typography>
+                <Typography
+                  variant="body1"
+                  sx={{ fontSize: 14, color: "#adadadff" }}
+                >
+                  {userDoc?.email}
+                </Typography>
                 <Divider sx={{ my: 2 }} />
                 <Grid container spacing={2}>
                   <Grid size={4}>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      28
+                      {pendingReports.length}
                     </Typography>
                     <Typography variant="caption">Tasks</Typography>
                   </Grid>
                   <Grid size={4}>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      643
+                      {reports.length}
                     </Typography>
                     <Typography variant="caption">Reports</Typography>
                   </Grid>
                   <Grid size={4}>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      76
+                      {emergencyReports.length}
                     </Typography>
                     <Typography variant="caption">Alerts</Typography>
                   </Grid>
                 </Grid>
+                <Button variant="outlined">
+                  Go to Profile
+                </Button>
               </CardContent>
             </Card>
           </Grid>

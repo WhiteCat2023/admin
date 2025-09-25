@@ -1,5 +1,5 @@
-import { HttpStatus } from "@/enums/status";
-import { getAllUsers, getUserById, getUserDoc, updateUserName, updateUserPhoneNumber } from "../services/firebase/users.services";
+import { HttpStatus } from "../enums/status";
+import { getAllUsers, getUserDoc, updateUserName, updateUserPhoneNumber } from "../services/firebase/users.services";
 
 export const updateName =  async ( req ) => {
     try {
@@ -53,19 +53,20 @@ export const allUsers = ( reqCallback ) => {
     }
 }
 
-export const getUserInfoFromFirestore = ( uid, reqCallback ) => {
+export const getUserInfoFromFirestore = async ( uid ) => {
     try{
-        getUserDoc( uid, reqCallback )
-        
-        return { 
-            status: HttpStatus.OK, 
+        const userData = await getUserDoc( uid )
+
+        return {
+            status: HttpStatus.OK,
             message: "Users fetched",
+            data: userData
         };
     } catch (error) {
         console.error(`User info fetch Error: ${error.message}`);
-        return { 
-            status: HttpStatus.BAD_REQUEST, 
-            message: error.message 
+        return {
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message
         };
     }
 }

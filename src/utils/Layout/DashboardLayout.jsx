@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Drawer,
@@ -16,6 +16,10 @@ import {
   Button,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import MapIcon from "@mui/icons-material/Map";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import Ariba from "../../assets/Ariba.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
@@ -31,11 +35,29 @@ const navigate = useNavigate();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const routes = [
-    { text: "Dashboard", path: "/dashboard" },
-    { text: "Map", path: "/map" },
-    { text: "Reports", path: "/report" },
-    { text: "Notification", path: "/notification" },
+    { text: "Dashboard", path: "dashboard", icon: <DashboardIcon /> },
+    { text: "Map", path: "map", icon: <MapIcon /> },
+    { text: "Reports", path: "report", icon: <AssessmentIcon /> },
+    { text: "Notification", path: "notification", icon: <NotificationsIcon /> },
   ];
+
+  const getInitialIndex = () => {
+    const index = routes.findIndex(route => location.pathname === "/" + route.path);
+    return index !== -1 ? index : 0;
+  };
+
+  const [selectedIndex, setSelectedIndex] = useState(getInitialIndex);
+
+  useEffect(() => {
+    const currentIndex = routes.findIndex(route => location.pathname === "/" + route.path);
+    if (currentIndex !== -1) {
+      setSelectedIndex(currentIndex);
+    }
+  }, [location.pathname]);
+
+    const handleListItemClick = (event, index) => {
+      setSelectedIndex(index);
+    };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -86,23 +108,34 @@ const navigate = useNavigate();
           My Dashboard
         </Typography>
         <List sx={{ textAlign: "left" }}>
-          {routes.map(({ text, path }) => (
+          {routes.map(({ text, path, icon }, index) => (
             <ListItem key={path} disablePadding>
-              <ListItemButton
+              <Button
                 component={Link}
                 to={path}
-                selected={location.pathname === path}
+                selected={selectedIndex === index}
+                onClick={(event) => handleListItemClick(event, index)}
                 sx={{
+                  width: "100%",
                   textAlign: "left",
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  p:2,
                   borderRadius: 1,
                   m: 1,
                   backgroundColor:
-                    location.pathname === path ? "#16b95aff" : "transparent",
-                  color: location.pathname === path ? "white" : "black",
+                    selectedIndex === index ? "#2ED573" : "transparent",
+                  color: selectedIndex === index ? "white" : "black",
+                  "&:hover": {
+                    backgroundColor: selectedIndex === index ? "#2ED573" : "rgba(0,0,0,0.1)",
+                  },
                 }}
               >
-                <ListItemText primary={text} />
-              </ListItemButton>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: "flex-start" }}>
+                  {icon}
+                  <Typography variant="body1" sx={{ ml: 1 }}>{text}</Typography>
+                </Box>
+              </Button>
             </ListItem>
           ))}
         </List>
