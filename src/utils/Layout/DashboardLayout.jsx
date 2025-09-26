@@ -25,6 +25,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
+import PersonIcon from "@mui/icons-material/Person";
 
 function DashboardLayout({ children }) {
   const location = useLocation();
@@ -35,10 +36,11 @@ const navigate = useNavigate();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const routes = [
-    { text: "Dashboard", path: "dashboard", icon: <DashboardIcon /> },
+    { text: "Dashboard", path: "", icon: <DashboardIcon /> },
     { text: "Map", path: "map", icon: <MapIcon /> },
     { text: "Reports", path: "report", icon: <AssessmentIcon /> },
-    { text: "Notification", path: "notification", icon: <NotificationsIcon /> },
+    // { text: "Notification", path: "notification", icon: <NotificationsIcon /> },
+    { text: "Profile", path: "profile", icon: <PersonIcon/> },
   ];
 
   const getInitialIndex = () => {
@@ -82,10 +84,10 @@ const navigate = useNavigate();
         height: "100%",
         textAlign: "center",
         border: "1px solid #ddd",
-        m: 2,
+        // m: 2,
         pt: 4,
         borderRadius: 3,
-        boxShadow: 3,
+        // boxShadow: 3,
         border: isDesktop ? "none" : "1px solid #ddd",
       }}
     >
@@ -120,20 +122,29 @@ const navigate = useNavigate();
                   textAlign: "left",
                   display: "flex",
                   justifyContent: "flex-start",
-                  p:2,
+                  p: 2,
                   borderRadius: 1,
                   m: 1,
                   backgroundColor:
                     selectedIndex === index ? "#2ED573" : "transparent",
-                  color: selectedIndex === index ? "white" : "black",
+                  color: selectedIndex === index ? "white" : "#8a8a8aff",
                   "&:hover": {
-                    backgroundColor: selectedIndex === index ? "#2ED573" : "rgba(0,0,0,0.1)",
+                    backgroundColor:
+                      selectedIndex === index ? "#2ED573" : "rgba(0,0,0,0.1)",
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: "flex-start" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                  }}
+                >
                   {icon}
-                  <Typography variant="body1" sx={{ ml: 1 }}>{text}</Typography>
+                  <Typography variant="body1" sx={{ ml: 1 }}>
+                    {text}
+                  </Typography>
                 </Box>
               </Button>
             </ListItem>
@@ -151,10 +162,10 @@ const navigate = useNavigate();
           sx={{
             borderRadius: 2,
             py: 1.5,
-            borderColor: "#c2c2c2ff", // custom outline color
-            color: "#c2c2c2ff", // text color
+            borderColor: "#2ED573", // custom outline color
+            color: "#2ED573", // text color
             "&:hover": {
-              borderColor: "#999999", // darker outline on hover
+              borderColor: "#23a559ff", // darker outline on hover
               backgroundColor: "rgba(0,0,0,0.02)", // subtle hover effect
             },
           }}
@@ -225,6 +236,7 @@ const navigate = useNavigate();
           mt: isDesktop ? 0 : 7,
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` }, // 👈 shift content to the right of sidebar
+          backgroundColor: "#f4fff6ff",
         }}
       >
         <Outlet />

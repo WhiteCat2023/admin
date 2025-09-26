@@ -10,6 +10,7 @@ import Notification from "./Pages/Notification";
 import Report from "./Pages/Report";
 import PublicRoute from "./utils/PublicRoute/PublicRoute";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import Profile from "./Pages/Profile.jsx";
 
 function App() {
   const router = createBrowserRouter([
@@ -47,10 +48,11 @@ function App() {
           element: <DashboardLayout />,
           children: [
             { index: true, element: <Dashboard /> },
-            { path: "dashboard", element: <Dashboard /> },
+            // { path: "dashboard", element: <Dashboard /> },
             { path: "map", element: <Map /> },
             { path: "notification", element: <Notification /> },
             { path: "report", element: <Report /> },
+            { path: "profile", element: <Profile /> },
           ],
         },
       ],

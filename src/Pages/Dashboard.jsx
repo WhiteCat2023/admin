@@ -7,10 +7,12 @@ import {
   CardContent,
   Avatar,
   Divider,
-  Skeleton,
   Fade,
   Badge,
+  Modal,
+  CardActionArea,
 } from "@mui/material";
+import { LineChart } from "@mui/x-charts/LineChart";
 import { auth } from "../utils/config/firebase";
 import InsertChartIcon from "@mui/icons-material/InsertChart";
 import ReportIcon from "@mui/icons-material/Report";
@@ -18,16 +20,15 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useEffect, useMemo, useState } from "react";
 import { getAllReports } from "../utils/controller/report.controller";
 import { HttpStatus } from "../utils/enums/status";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { useAuth } from "../context/AuthContext";
+import CloseIcon from "@mui/icons-material/Close";
 
 function Dashboard() {
   const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showContent, setShowContent] = useState(false);
+  const [openChartModal, setOpenChartModal] = useState(false);
   const { user, loading: authLoading, userDoc } = useAuth();
-
-  const combinedLoading = loading || authLoading;
 
   useEffect(() => {
     fetchData();
@@ -36,7 +37,6 @@ function Dashboard() {
   }, [user]);
 
   const fetchData = async () => {
-    setLoading(true);
     setShowContent(false);
     try {
       const result = await getAllReports();
@@ -49,7 +49,6 @@ function Dashboard() {
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
-      setLoading(false);
       setShowContent(true);
     }
   };
@@ -111,140 +110,60 @@ function Dashboard() {
     return sortedReports; // Return the first (latest) report
   }, [respondedReports]);
 
-  // Skeleton components
-  const StatCardSkeleton = () => (
-    <Card elevation={3} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
-      <CardContent
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box sx={{ width: "100%" }}>
-          <Skeleton variant="text" width="80%" height={24} sx={{ mb: 1 }} />
-          <Skeleton variant="text" width="60%" height={32} />
-        </Box>
-        <Skeleton variant="circular" width={40} height={40} />
-      </CardContent>
-    </Card>
-  );
-
-  const LatestReportSkeleton = () => (
-    <Card elevation={3} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
-      <CardContent>
-        <Skeleton variant="text" width="40%" height={32} sx={{ mb: 2 }} />
-        <Skeleton variant="text" width="100%" height={24} sx={{ mb: 1 }} />
-        <Skeleton variant="text" width="80%" height={24} sx={{ mb: 2 }} />
-        <Skeleton
-          variant="rectangular"
-          width={120}
-          height={36}
-          sx={{ borderRadius: 1 }}
-        />
-      </CardContent>
-    </Card>
-  );
-
-  const SideCardSkeleton = () => (
-    <Card elevation={3} sx={{ flexGrow: 1, borderRadius: 4 }}>
-      <CardContent>
-        <Skeleton variant="text" width="60%" height={32} sx={{ mb: 2 }} />
-        <Skeleton
-          variant="rectangular"
-          width="100%"
-          height={1}
-          sx={{ mb: 1 }}
-        />
-        {[1, 2, 3].map((item) => (
-          <Card key={item} sx={{ mb: 1, borderRadius: 2 }} elevation={2}>
-            <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
-              <Skeleton variant="rectangular" width="100%" height={60} />
-            </CardContent>
-          </Card>
-        ))}
-      </CardContent>
-    </Card>
-  );
-
-  const ProfileCardSkeleton = () => (
-    <Card
-      elevation={3}
-      sx={{ flexGrow: 1, textAlign: "center", borderRadius: 4 }}
-    >
-      <CardContent>
-        <Skeleton
-          variant="circular"
-          width={80}
-          height={80}
-          sx={{ margin: "0 auto", mb: 2 }}
-        />
-        <Skeleton
-          variant="text"
-          width="40%"
-          height={32}
-          sx={{ margin: "0 auto", mb: 1 }}
-        />
-        <Skeleton
-          variant="text"
-          width="60%"
-          height={24}
-          sx={{ margin: "0 auto", mb: 2 }}
-        />
-        <Skeleton
-          variant="text"
-          width="80%"
-          height={1}
-          sx={{ margin: "0 auto", mb: 2 }}
-        />
-        <Grid container spacing={2}>
-          {[1, 2, 3].map((item) => (
-            <Grid size={4} key={item}>
-              <Skeleton variant="text" width="100%" height={32} />
-              <Skeleton variant="text" width="60%" height={20} />
-            </Grid>
-          ))}
-        </Grid>
-      </CardContent>
-    </Card>
-  );
-
-  const SkeletonLoader = () => (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Typography variant="h6" color="text.secondary">
-        Greetings! Welcome Back
-      </Typography>
-      <Typography variant="h3" sx={{ fontWeight: "bold", mb: 3 }}>
-        ADMIN
-      </Typography>
-
-      {/* Top cards skeleton */}
-      <Grid container spacing={2} alignItems="stretch">
-        <Grid size={6} sx={{ display: "flex" }}>
-          <StatCardSkeleton />
-        </Grid>
-        <Grid size={6} sx={{ display: "flex" }}>
-          <StatCardSkeleton />
-        </Grid>
-
-        {/* Latest report skeleton */}
-        <Grid size={12} sx={{ display: "flex" }}>
-          <LatestReportSkeleton />
-        </Grid>
-
-        {/* Side cards skeleton */}
-        <Grid size={4} sx={{ display: "flex" }}>
-          <SideCardSkeleton />
-        </Grid>
-        <Grid size={4} sx={{ display: "flex" }}>
-          <SideCardSkeleton />
-        </Grid>
-        <Grid size={4} sx={{ display: "flex" }}>
-          <ProfileCardSkeleton />
-        </Grid>
-      </Grid>
-    </Box>
-  );
+  const chartData = useMemo(() => {
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = format(date, "MMM yyyy");
+      const respondedCount = respondedReports.filter((report) => {
+        const reportTimestamp = report.timestamp;
+        let reportDate;
+        if (reportTimestamp?.toDate) {
+          reportDate = reportTimestamp.toDate();
+        } else if (
+          typeof reportTimestamp === "string" ||
+          typeof reportTimestamp === "number"
+        ) {
+          reportDate = new Date(reportTimestamp);
+        } else if (reportTimestamp instanceof Date) {
+          reportDate = reportTimestamp;
+        } else {
+          reportDate = null;
+        }
+        return (
+          reportDate &&
+          !isNaN(reportDate.getTime()) &&
+          reportDate.getMonth() === date.getMonth() &&
+          reportDate.getFullYear() === date.getFullYear()
+        );
+      }).length;
+      const emergencyCount = emergencyReports.filter((report) => {
+        const reportTimestamp = report.timestamp;
+        let reportDate;
+        if (reportTimestamp?.toDate) {
+          reportDate = reportTimestamp.toDate();
+        } else if (
+          typeof reportTimestamp === "string" ||
+          typeof reportTimestamp === "number"
+        ) {
+          reportDate = new Date(reportTimestamp);
+        } else if (reportTimestamp instanceof Date) {
+          reportDate = reportTimestamp;
+        } else {
+          reportDate = null;
+        }
+        return (
+          reportDate &&
+          !isNaN(reportDate.getTime()) &&
+          reportDate.getMonth() === date.getMonth() &&
+          reportDate.getFullYear() === date.getFullYear()
+        );
+      }).length;
+      months.push({ month: monthName, responded: respondedCount, emergency: emergencyCount });
+    }
+    return months;
+  }, [respondedReports, emergencyReports]);
 
   const getTierColor = (item) => {
     const tier = item.tier?.toLowerCase();
@@ -260,54 +179,64 @@ function Dashboard() {
       ? format(item.timestamp.toDate(), "MMM d | h:mma")
       : "";
     return (
-      <Card key={item.id} sx={{ mb: 1, borderRadius: 2 }} elevation={2}>
-        <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
-          <Divider
-            orientation="vertical"
-            sx={{
-              height: 70, // Match the text height
-              borderRightWidth: 3, // Thicker line
-              borderColor: "#2ED573", // Color
-              borderRadius: 2,
-              mr: 2, // More margin for better spacing
-            }}
-          />
-          <Box
-            sx={{
-              flex: 1,
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 2,
-            }}
-          >
-            <Box>
+      <Card key={item.id} sx={{ mb: 1, borderRadius: 2 }} elevation={0}>
+        <CardActionArea>
+          <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
+            <Divider
+              orientation="vertical"
+              sx={{
+                height: 70, // Match the text height
+                borderRightWidth: 3, // Thicker line
+                borderColor: "#2ED573", // Color
+                borderRadius: 2,
+                mr: 2, // More margin for better spacing
+              }}
+            />
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 2,
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  fontWeight={700}
+                  fontSize={16}
+                >
+                  {item.title}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  fontSize={12}
+                >
+                  {formattedDate}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  fontSize={12}
+                >
+                  Status: {item.status}
+                </Typography>
+              </Box>
               <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                fontWeight={700}
-                fontSize={16}
+                variant="body1"
+                color={getTierColor(item)}
+                sx={{
+                  textShadow: "1px 1px 1px rgb(0, 0, 0)",
+                }}
+                fontSize={12}
               >
-                {item.title}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" fontSize={12}>
-                {formattedDate}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" fontSize={12}>
-                Status: {item.status}
+                {item.tier}
               </Typography>
             </Box>
-            <Typography
-              variant="body1"
-              color={getTierColor(item)}
-              sx={{
-                textShadow: "1px 1px 1px rgb(0, 0, 0)",
-              }}
-              fontSize={12}
-            >
-              {item.tier}
-            </Typography>
-          </Box>
-        </CardContent>
+          </CardContent>
+        </CardActionArea>
       </Card>
     );
   };
@@ -349,7 +278,11 @@ function Dashboard() {
         {/* Top cards */}
         <Grid container spacing={2} alignItems="stretch">
           <Grid size={6} sx={{ display: "flex" }}>
-            <Card elevation={3} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
+            <Card
+              elevation={2}
+              sx={{ p: 1, flexGrow: 1, borderRadius: 4, cursor: "pointer" }}
+              onClick={() => setOpenChartModal(true)}
+            >
               <CardContent
                 sx={{
                   display: "flex",
@@ -372,7 +305,7 @@ function Dashboard() {
           </Grid>
 
           <Grid size={6} sx={{ display: "flex" }}>
-            <Card elevation={3} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
+            <Card elevation={2} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
               <CardContent
                 sx={{
                   display: "flex",
@@ -396,7 +329,7 @@ function Dashboard() {
 
           {/* Latest report full width */}
           <Grid size={12} sx={{ display: "flex" }}>
-            <Card elevation={3} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
+            <Card elevation={2} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
               <CardContent sx={{ display: "flex", gap: 2 }}>
                 <Box
                   sx={{
@@ -466,7 +399,7 @@ function Dashboard() {
           </Grid>
 
           <Grid size={4} sx={{ display: "flex" }}>
-            <Card elevation={3} sx={{ flexGrow: 1, borderRadius: 4 }}>
+            <Card elevation={2} sx={{ flexGrow: 1, borderRadius: 4 }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   Reports by TierList
@@ -484,7 +417,7 @@ function Dashboard() {
           </Grid>
 
           <Grid size={4} sx={{ display: "flex" }}>
-            <Card elevation={3} sx={{ flexGrow: 1, borderRadius: 4 }}>
+            <Card elevation={2} sx={{ flexGrow: 1, borderRadius: 4 }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   History
@@ -502,7 +435,7 @@ function Dashboard() {
 
           <Grid size={4} sx={{ display: "flex" }}>
             <Card
-              elevation={3}
+              elevation={2}
               sx={{ flexGrow: 1, textAlign: "center", borderRadius: 4 }}
             >
               <CardContent>
@@ -561,9 +494,7 @@ function Dashboard() {
                     <Typography variant="caption">Alerts</Typography>
                   </Grid>
                 </Grid>
-                <Button variant="outlined">
-                  Go to Profile
-                </Button>
+                <Button variant="outlined">Go to Profile</Button>
               </CardContent>
             </Card>
           </Grid>
@@ -574,8 +505,52 @@ function Dashboard() {
 
   return (
     <>
-      {combinedLoading && <SkeletonLoader />}
-      {!combinedLoading && <DashboardContent />}
+      <DashboardContent />
+      <Modal open={openChartModal} onClose={() => setOpenChartModal(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 800,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            border: 0,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Reports Over Time
+            </Typography>
+            <Button onClick={() => setOpenChartModal(false)}>
+              <CloseIcon />
+            </Button>
+          </Box>
+
+          <LineChart
+            xAxis={[{ data: chartData.map((d) => d.month), scaleType: "band" }]}
+            series={[
+              { data: chartData.map((d) => d.responded), label: "Responded" },
+              {
+                data: chartData.map((d) => d.emergency),
+                label: "Emergency",
+                color: "#ff0000",
+              },
+            ]}
+            width={700}
+            height={400}
+          />
+        </Box>
+      </Modal>
     </>
   );
 }

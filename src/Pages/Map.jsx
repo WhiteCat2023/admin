@@ -3,9 +3,20 @@ import {
   Map as GoogleMap,
   Marker,
 } from "@vis.gl/react-google-maps";
-import { Box, Typography, Card, CardContent, Divider, Skeleton, Fade } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Divider,
+  Fade,
+  TextField,
+  InputAdornment,
+  CardActionArea,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import { format } from "date-fns";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { getAllReports } from "../utils/controller/report.controller";
 import { HttpStatus } from "../utils/enums/status";
 
@@ -13,16 +24,23 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyBXEUzzVkNk1BpBESFqbftnG6Om66vNPY0"; // replac
 
 function Map() {
   const [reports, setReports] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showContent, setShowContent] = useState(false);
+  const [showContent, setShowContent] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [debouncedSearchText, setDebouncedSearchText] = useState("");
   const mapRef = useRef(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   const fetchData = async () => {
-    setIsLoading(true);
     setShowContent(false);
     try {
       const result = await getAllReports();
@@ -33,7 +51,6 @@ function Map() {
     } catch (err) {
       console.error("Error fetching reports:", err);
     } finally {
-      setIsLoading(false);
       setShowContent(true);
     }
   };
@@ -53,155 +70,207 @@ function Map() {
     return "#2ED573";
   };
 
-  const SkeletonLoader = () => (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Typography variant="h3" sx={{ fontWeight: "bold", mb: 2 }}>
-        MAP
-      </Typography>
 
-      <Box
+
+  const renderListItem = (item) => {
+    const formattedDate = item.timestamp?.toDate
+      ? format(item.timestamp.toDate(), "MMM d | h:mma")
+      : "";
+    return (
+      <Card
+        key={item.id}
         sx={{
+          mb: 1,
           borderRadius: 2,
-          overflow: "hidden",
-          display: "flex",
-          height: "80vh",
+          cursor: "pointer",
+          border: "1px solid #2ED573",
         }}
+        elevation={0}
+        onClick={() => handleCardClick(item)}
       >
-        <Box sx={{ width: "40%", p: 2, overflowY: "auto" }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-            OVERSEE
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            List of places needed action
-          </Typography>
-          <Skeleton variant="rectangular" height={60} sx={{ mb: 1 }} />
-          <Skeleton variant="rectangular" height={60} sx={{ mb: 1 }} />
-          <Skeleton variant="rectangular" height={60} sx={{ mb: 1 }} />
-        </Box>
+        <CardActionArea>
+          <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
+            <Divider
+              orientation="vertical"
+              sx={{
+                height: 70, // Match the text height
+                borderRightWidth: 3, // Thicker line
+                borderColor: "#2ED573", // Color
+                borderRadius: 2,
+                mr: 2, // More margin for better spacing
+              }}
+            />
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 2,
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  fontWeight={700}
+                  fontSize={16}
+                >
+                  {item.title}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  fontSize={12}
+                >
+                  {formattedDate}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  fontSize={12}
+                >
+                  Status: {item.status}
+                </Typography>
+              </Box>
+              <Typography
+                variant="body1"
+                color={getTierColor(item)}
+                sx={{
+                  textShadow: "1px 1px 1px rgb(0, 0, 0)",
+                }}
+                fontSize={12}
+              >
+                {item.tier}
+              </Typography>
+            </Box>
+          </CardContent>
+        </CardActionArea>
+      </Card>
+    );
+  };
 
-        <Box sx={{ flex: 1 }}>
-          <Skeleton variant="rectangular" sx={{ width: "100%", height: "100%" }} />
-        </Box>
-      </Box>
-    </Box>
+  const filteredReports = useMemo(
+    () =>
+      reports.filter(
+        (report) =>
+          (report.title || "").toLowerCase().includes(debouncedSearchText.toLowerCase()) ||
+          (report.description || "")
+            .toLowerCase()
+            .includes(debouncedSearchText.toLowerCase())
+      ),
+    [reports, debouncedSearchText]
   );
 
-  const MapContent = () => (
-    <Fade in={showContent} timeout={600}>
-      <Box sx={{ flexGrow: 1, p: 3 }}>
-        <Typography variant="h3" sx={{ fontWeight: "bold", mb: 2 }}>
-          MAP
-        </Typography>
-
-        <Box
-          sx={{
-            borderRadius: 2,
-            overflow: "hidden",
-            display: "flex",
-            height: "80vh",
-          }}
-        >
-          {/* Left side list */}
-          <Box sx={{ width: "40%", p: 2, overflowY: "auto" }}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-              OVERSEE
+  const MapContent = () => {
+    return (
+      <Fade in={showContent} timeout={600}>
+        <Box sx={{ flexGrow: 1, p: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+              MAP
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              List of places needed action
-            </Typography>
+            <TextField
+              variant="outlined"
+              size="small"
+              placeholder="Search..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ borderRadius: 4 }}>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                width: 300,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "15px",
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#2ED573",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#2ED573",
+                  },
+                },
+              }}
+            />
+          </Box>
 
-            {reports.length === 0 ? (
-              <Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>
-                No reports available
+          <Box
+            sx={{
+              borderRadius: 2,
+              overflow: "hidden",
+              display: "flex",
+              height: "80vh",
+            }}
+          >
+            {/* Left side list */}
+            <Box sx={{ width: "40%", p: 2, overflowY: "auto" }}>
+              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+                OVERSEE
               </Typography>
-            ) : (
-              reports.map((item) => {
-                const formattedDate = item.timestamp?.toDate
-                  ? format(item.timestamp.toDate(), "hh:mma - MMM d")
-                  : "";
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                List of places needed action
+              </Typography>
 
-                return (
-                  <Card
-                    key={item.id}
-                    onClick={() => handleCardClick(item)}
-                    sx={{
-                      mb: 1,
-                      border: "1px solid #2ED573",
-                      borderRadius: 2,
-                      cursor: "pointer",
-                      "&:hover": {
-                        backgroundColor: "#f5f5f5",
-                      },
-                    }}
-                    elevation={0}
-                  >
-                    <CardContent
-                      sx={{ display: "flex", alignItems: "center", p: 2 }}
-                    >
-                      <Divider
-                        orientation="vertical"
-                        sx={{
-                          height: 40,
-                          borderRightWidth: 3,
-                          borderColor: getTierColor(item),
-                          borderRadius: 2,
-                          mr: 2,
+              {filteredReports.length === 0 ? (
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ textAlign: "center", py: 4 }}
+                >
+                  No reports available
+                </Typography>
+              ) : (
+                filteredReports.map((item) => {
+                  const formattedDate = item.timestamp?.toDate
+                    ? format(item.timestamp.toDate(), "hh:mma - MMM d")
+                    : "";
+
+                  return renderListItem(item);
+                })
+              )}
+            </Box>
+
+            {/* Right side map */}
+            <Box sx={{ flex: 1 }}>
+              <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+                <GoogleMap
+                  defaultZoom={16}
+                  defaultCenter={{ lat: 10.309, lng: 123.893 }}
+                  options={{ gestureHandling: "greedy" }}
+                  style={{ width: "100%", height: "100%" }}
+                  onLoad={(map) => (mapRef.current = map)}
+                >
+                  {reports.map((item) =>
+                    item.location ? (
+                      <Marker
+                        key={item.id}
+                        position={{
+                          lat: item.location[1],
+                          lng: item.location[0],
                         }}
                       />
-                      <Box>
-                        <Typography
-                          variant="body1"
-                          fontWeight={600}
-                          sx={{ mb: 0.5 }}
-                        >
-                          {item.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {formattedDate}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
-          </Box>
-
-          {/* Right side map */}
-          <Box sx={{ flex: 1 }}>
-            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-              <GoogleMap
-                defaultZoom={16}
-                defaultCenter={{ lat: 10.309, lng: 123.893 }}
-                options={{ gestureHandling: "greedy" }}
-                style={{ width: "100%", height: "100%" }}
-                onLoad={(map) => (mapRef.current = map)}
-              >
-                {reports.map((item) =>
-                  item.location ? (
-                    <Marker
-                      key={item.id}
-                      position={{
-                        lat: item.location[1],
-                        lng: item.location[0],
-                      }}
-                    />
-                  ) : null
-                )}
-              </GoogleMap>
-            </APIProvider>
+                    ) : null
+                  )}
+                </GoogleMap>
+              </APIProvider>
+            </Box>
           </Box>
         </Box>
-      </Box>
-    </Fade>
-  );
+      </Fade>
+    );
+  };
 
-  return (
-    <>
-      {isLoading && <SkeletonLoader />}
-      {!isLoading && <MapContent />}
-    </>
-  );
+  return <MapContent />;
 }
 
 export default Map;
