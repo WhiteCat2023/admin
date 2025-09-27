@@ -3,7 +3,7 @@ import ReportListItem from "./ReportListItem";
 
 function ReportsByTierCard({ latestEmergencyReport, onItemClick }) {
   return (
-    <Card elevation={2} sx={{ flexGrow: 1, borderRadius: 4 }}>
+    <Card elevation={2} sx={{ flexGrow: 1, borderRadius: 4, boxShadow: '0px 2px 4px rgba(167, 166, 166, 0.5)' }}>
       <CardContent>
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
           Reports by TierList

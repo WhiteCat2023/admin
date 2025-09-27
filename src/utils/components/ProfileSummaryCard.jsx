@@ -1,11 +1,14 @@
 import { Card, CardContent, Typography, Divider, Grid, Button, Badge, Avatar } from "@mui/material";
 import { getInitials } from "../../utils/helpers";
+import { useNavigate } from "react-router-dom";
 
 function ProfileSummaryCard({ userDoc, pendingReportsLength, reportsLength, emergencyReportsLength }) {
+  const navigate = useNavigate();
+
   return (
     <Card
-      elevation={2}
-      sx={{ flexGrow: 1, textAlign: "center", borderRadius: 4 }}
+      elevation={0}
+      sx={{ flexGrow: 1, textAlign: "center", borderRadius: 4, boxShadow: '0px 2px 4px rgba(167, 166, 166, 0.5)', pt:3 }}
     >
       <CardContent>
         <Badge
@@ -18,18 +21,19 @@ function ProfileSummaryCard({ userDoc, pendingReportsLength, reportsLength, emer
           }}
           invisible={pendingReportsLength === 0}
           sx={{
-            width: 80,
-            height: 80,
+            width: 120,
+            height: 120,
           }}
         >
           <Avatar
             sx={{
               bgcolor: "#2ED573",
-              width: 80,
-              height: 80,
+              width: 120,
+              height: 120,
               margin: "0 auto",
               mb: 2,
-              border: "2px solid white",
+              border: "4px solid white",
+              boxShadow: 2,
             }}
           >
             {getInitials(userDoc?.firstName)}
@@ -37,14 +41,11 @@ function ProfileSummaryCard({ userDoc, pendingReportsLength, reportsLength, emer
         </Badge>
 
         <Typography variant="h6">{userDoc?.name}</Typography>
-        <Typography
-          variant="body1"
-          sx={{ fontSize: 14, color: "#adadadff" }}
-        >
+        <Typography variant="body1" sx={{ fontSize: 14, color: "#adadadff" }}>
           {userDoc?.email}
         </Typography>
         <Divider sx={{ my: 2 }} />
-        <Grid container spacing={2}>
+        <Grid container spacing={2} sx={{mb:2}}>
           <Grid size={4}>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               {pendingReportsLength}
@@ -64,7 +65,13 @@ function ProfileSummaryCard({ userDoc, pendingReportsLength, reportsLength, emer
             <Typography variant="caption">Alerts</Typography>
           </Grid>
         </Grid>
-        <Button variant="outlined">Go to Profile</Button>
+        <Button 
+          variant="outlined" 
+          sx={{ borderColor: '#2ED573', color: '#2ED573', '&:hover': { borderColor: '#1EBF5F', color: '#1EBF5F' } }}
+          onClick={() => navigate('/profile')}
+        >
+          Go to Profile
+        </Button>
       </CardContent>
     </Card>
   );

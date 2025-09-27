@@ -2,7 +2,15 @@ import { Card, CardContent, Typography, Box, Button } from "@mui/material";
 
 function LatestReportCard({ latestReport, shiningEffectStyles, onRespond }) {
   return (
-    <Card elevation={2} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
+    <Card
+      elevation={2}
+      sx={{
+        p: 1,
+        flexGrow: 1,
+        borderRadius: 4,
+        boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+      }}
+    >
       <CardContent sx={{ display: "flex", gap: 2 }}>
         <Box
           sx={{
@@ -15,11 +23,7 @@ function LatestReportCard({ latestReport, shiningEffectStyles, onRespond }) {
           }}
         >
           <Box>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ fontWeight: 600 }}
-            >
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
               LATEST REPORT
             </Typography>
             <Typography
@@ -28,10 +32,7 @@ function LatestReportCard({ latestReport, shiningEffectStyles, onRespond }) {
             >
               {latestReport?.title || "No Latest Pending Report"}
             </Typography>
-            <Typography
-              color="text.secondary"
-              sx={{ mt: 1, fontSize: 14 }}
-            >
+            <Typography color="text.secondary" sx={{ mt: 1, fontSize: 14 }}>
               {latestReport?.description || "No Latest Pending Report"}
             </Typography>
           </Box>

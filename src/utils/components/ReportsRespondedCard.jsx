@@ -5,7 +5,13 @@ function ReportsRespondedCard({ respondedReportsLength, onClick }) {
   return (
     <Card
       elevation={2}
-      sx={{ p: 1, flexGrow: 1, borderRadius: 4, cursor: "pointer" }}
+      sx={{
+        p: 1,
+        flexGrow: 1,
+        borderRadius: 4,
+        cursor: "pointer",
+        boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+      }}
       onClick={onClick}
     >
       <CardContent

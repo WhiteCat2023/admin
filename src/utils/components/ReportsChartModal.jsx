@@ -29,9 +29,11 @@ function ReportsChartModal({ open, onClose, chartData }) {
           <Typography variant="h6" sx={{ mb: 2 }}>
             Reports Over Time
           </Typography>
-          <Button onClick={onClose}>
-            <CloseIcon />
-          </Button>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button onClick={onClose}>
+              <CloseIcon />
+            </Button>
+          </Box>
         </Box>
 
         <LineChart

@@ -8,9 +8,9 @@ import {
   Fade,
   Badge,
   CardActionArea,
-  IconButton,
+  Snackbar,
+  Alert,
 } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import { auth } from "../utils/config/firebase";
 import { useEffect, useMemo, useState } from "react";
 import { getAllReports } from "../utils/controller/report.controller";
@@ -26,6 +26,7 @@ import ReportsByTierCard from "../utils/components/ReportsByTierCard";
 import HistoryCard from "../utils/components/HistoryCard";
 import ProfileSummaryCard from "../utils/components/ProfileSummaryCard";
 import ReportsChartModal from "../utils/components/ReportsChartModal";
+import PushNotificationButton from "../utils/components/PushNotificationButton";
 
 function Dashboard() {
   const [reports, setReports] = useState([]);
@@ -33,13 +34,41 @@ function Dashboard() {
   const [openChartModal, setOpenChartModal] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [reportNotifs, setReportNotifs] = useState([]);
   const { user, loading: authLoading, userDoc } = useAuth();
 
   useEffect(() => {
     fetchData();
-    console.log(user);
-    console.log(userDoc);
-  }, [user]);
+  }, []); 
+
+  useEffect(() => {
+    // Simulate notifications from reports (new/pending as unread)
+    if (reports.length > 0) {
+      const notifs = reports
+        .filter(
+          (report) =>
+            report.status.toLowerCase() === "pending" ||
+            report.tier.toLowerCase() === "emergency"
+        )
+        .slice(0, 10) // Recent 10
+        .map((report) => ({
+          id: report.id,
+          title: `New ${report.tier.toLowerCase()} report: ${
+            report.title || "Untitled"
+          }`,
+          body: report.description || "Check the details",
+          timestamp: report.timestamp?.toDate
+            ? report.timestamp.toDate()
+            : new Date(),
+          read: false,
+          type: "report",
+          report: report,
+        }));
+      setReportNotifs(notifs);
+    }
+  }, [reports]);
 
   const fetchData = async () => {
     setShowContent(false);
@@ -47,12 +76,10 @@ function Dashboard() {
       const result = await getAllReports();
       if (result.status === HttpStatus.OK) {
         setReports(result.data);
-        console.log("Reports:", result.data);
-      } else {
-        console.warn("Failed to fetch reports:", result);
+        console.log(result.data);
       }
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Error fetching reports:", err);
     } finally {
       setShowContent(true);
     }
@@ -174,8 +201,6 @@ function Dashboard() {
     return months;
   }, [respondedReports, emergencyReports]);
 
-
-
   const shiningEffectStyles = {
     position: "relative",
     overflow: "hidden",
@@ -220,10 +245,22 @@ function Dashboard() {
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <IconButton sx={{ color: "#2ED573", backgroundColor: "#d1fae2ff" }}>
-              <NotificationsIcon />
-            </IconButton>
-            <Card sx={{ borderRadius: 4 }}>
+            <PushNotificationButton
+              reportNotifs={reportNotifs}
+              onSelectReport={(report) => {
+                setSelectedReport(report);
+                setOpenDialog(true);
+              }}
+              setSnackbarMessage={setSnackbarMessage}
+              setSnackbarOpen={setSnackbarOpen}
+            />
+
+            <Card
+              sx={{
+                borderRadius: 4,
+                boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+              }}
+            >
               <CardActionArea sx={{ px: 2, py: 1.5, borderRadius: 4 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Badge
@@ -267,7 +304,7 @@ function Dashboard() {
           <Grid size={6} sx={{ display: "flex" }}>
             <ReportsRespondedCard
               respondedReportsLength={respondedReports.length}
-              onClick={() => setOpenChartModal(true)}
+              onClick={(event) => setOpenChartModal(true)}
             />
           </Grid>
 
@@ -285,22 +322,22 @@ function Dashboard() {
           </Grid>
 
           <Grid size={4} sx={{ display: "flex" }}>
-            <ReportsByTierCard 
-              latestEmergencyReport={latestEmergencyReport} 
+            <ReportsByTierCard
+              latestEmergencyReport={latestEmergencyReport}
               onItemClick={(item) => {
                 setSelectedReport(item);
                 setOpenDialog(true);
-              }} 
+              }}
             />
           </Grid>
 
           <Grid size={4} sx={{ display: "flex" }}>
-            <HistoryCard 
-              latestRepondedReport={latestRepondedReport} 
+            <HistoryCard
+              latestRepondedReport={latestRepondedReport}
               onItemClick={(item) => {
                 setSelectedReport(item);
                 setOpenDialog(true);
-              }} 
+              }}
             />
           </Grid>
 
@@ -336,6 +373,28 @@ function Dashboard() {
         report={selectedReport}
         onRespond={handleRespond}
       />
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={
+            snackbarMessage.includes("enabled") ||
+            snackbarMessage.includes("received")
+              ? "success"
+              : snackbarMessage.includes("Failed") ||
+                snackbarMessage.includes("blocked")
+              ? "error"
+              : "info"
+          }
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

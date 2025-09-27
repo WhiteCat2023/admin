@@ -3,7 +3,15 @@ import ReportIcon from "@mui/icons-material/Report";
 
 function PendingReportsCard({ pendingReportsLength }) {
   return (
-    <Card elevation={2} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
+    <Card
+      elevation={2}
+      sx={{
+        p: 1,
+        flexGrow: 1,
+        borderRadius: 4,
+        boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+      }}
+    >
       <CardContent
         sx={{
           display: "flex",
