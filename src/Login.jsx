@@ -65,7 +65,7 @@ function Login() {
       try {
         await signInWithEmailAndPassword(auth, email, password);
 
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       } catch (error) {
         // Show Firebase error
         if (

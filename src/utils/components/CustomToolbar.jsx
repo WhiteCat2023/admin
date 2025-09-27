@@ -163,7 +163,7 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
         </>
       )}
 
-      <Tooltip title="Tier Sort">
+      <Tooltip title="Tier sort">
         <Button
           id="demo-customized-button"
           aria-controls={open ? "demo-customized-menu" : undefined}

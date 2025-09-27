@@ -29,7 +29,7 @@ import PersonIcon from "@mui/icons-material/Person";
 
 function DashboardLayout({ children }) {
   const location = useLocation();
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const drawerWidth = 300;
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
@@ -40,26 +40,30 @@ const navigate = useNavigate();
     { text: "Map", path: "map", icon: <MapIcon /> },
     { text: "Reports", path: "report", icon: <AssessmentIcon /> },
     // { text: "Notification", path: "notification", icon: <NotificationsIcon /> },
-    { text: "Profile", path: "profile", icon: <PersonIcon/> },
+    { text: "Profile", path: "profile", icon: <PersonIcon /> },
   ];
 
   const getInitialIndex = () => {
-    const index = routes.findIndex(route => location.pathname === "/" + route.path);
+    const index = routes.findIndex(
+      (route) => location.pathname === "/" + route.path
+    );
     return index !== -1 ? index : 0;
   };
 
   const [selectedIndex, setSelectedIndex] = useState(getInitialIndex);
 
   useEffect(() => {
-    const currentIndex = routes.findIndex(route => location.pathname === "/" + route.path);
+    const currentIndex = routes.findIndex(
+      (route) => location.pathname === "/" + route.path
+    );
     if (currentIndex !== -1) {
       setSelectedIndex(currentIndex);
     }
   }, [location.pathname]);
 
-    const handleListItemClick = (event, index) => {
-      setSelectedIndex(index);
-    };
+  const handleListItemClick = (event, index) => {
+    setSelectedIndex(index);
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -73,7 +77,6 @@ const navigate = useNavigate();
       console.error("Logout failed:", error.message);
     }
   };
-
 
   const drawer = (
     <Box

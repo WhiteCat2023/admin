@@ -1,297 +1,137 @@
 import {
+  Avatar,
   Box,
   Typography,
   Card,
-  CardContent,
-  Divider,
-  Skeleton,
   Fade,
   useMediaQuery,
   Button,
   TextField,
-  InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Grid,
-  Tooltip,
-  FormControl,
-  Select,
-  InputLabel,
-  MenuItem,
-  ListItemIcon,
   IconButton,
-  Menu,
+  Divider,
+  Tabs,
+  Tab,
+  AppBar,
+  Toolbar,
+  InputBase,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import BlockIcon from "@mui/icons-material/Block";
-import DeleteIcon from "@mui/icons-material/Delete";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-
-import { useEffect, useState, useRef } from "react";
-import { DataGrid, Toolbar, ToolbarButton } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
-import { GridToolbarContainer } from "@mui/x-data-grid";
-import { getAllReportsFromFirebase } from "../utils/services/firebase/report.service";
-import { HttpStatus } from "../utils/enums/status";
-import CustomToolbar from "../utils/components/CustomToolbar";
-import { set } from "date-fns";
-
-const getTierColor = (item) => {
-  const tier = item.tier?.toLowerCase();
-  if (tier === "emergency") return "#ff0000";
-  if (tier === "high") return "#ffbb00";
-  if (tier === "medium") return "#fffb00";
-  if (tier === "low") return "#00ff22";
-  return "#666666"; // default color
-};
-
-const paginationModel = { page: 0, pageSize: 20 };
-
-const dummyRows = Array(5)
-  .fill({})
-  .map((_, i) => ({ id: i }));
+import EditIcon from "@mui/icons-material/Edit";
+import { useState } from "react";
+import AccountInformationCard from "../utils/components/AccountInformationCard";
+import { useAuth } from "../context/AuthContext";
 
 function Profile() {
   const [showContent, setShowContent] = useState(true);
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState("pending");
-  const isSmallScreen = useMediaQuery("(max-width:600px)");
-  const [reports, setReports] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedReport, setSelectedReport] = useState(null);
+  const [value, setValue] = useState(0);
+  const { userDoc } = useAuth();
 
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedRow, setSelectedRow] = useState(null);
-
-  const columns = [
-    {
-      field: "title",
-      headerName: "Title",
-      flex: 2,
-      renderCell: (params) => {
-        if (params.row.isLoading)
-          return <Skeleton variant="text" width="80%" />;
-        return params.value;
-      },
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      flex: 3,
-      renderCell: (params) => {
-        if (params.row.isLoading)
-          return <Skeleton variant="text" width="90%" />;
-        return params.value;
-      },
-    },
-    {
-      field: "tier",
-      headerName: "Tier",
-      flex: 1,
-      renderCell: (params) => {
-        if (params.row.isLoading)
-          return <Skeleton variant="circular" width={8} height={8} />;
-        return (
-          <span style={{ display: "flex", alignItems: "center" }}>
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: params.row
-                  ? getTierColor(params.row)
-                  : "#666666",
-                marginRight: 4,
-              }}
-            ></span>
-            {params.value}
-          </span>
-        );
-      },
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      flex: 1,
-      renderCell: (params) => {
-        if (params.row.isLoading)
-          return <Skeleton variant="text" width="60%" />;
-        return params.value;
-      },
-    },
-    {
-      field: "date",
-      headerName: "Date",
-      flex: 1.5,
-      renderCell: (params) => {
-        if (params.row.isLoading)
-          return <Skeleton variant="text" width="70%" />;
-        return params.value;
-      },
-      valueGetter: (value, row) =>
-        row.timestamp
-          ? new Date(row.timestamp.seconds * 1000).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
-          : "",
-    },
-    {
-      field: "time",
-      headerName: "Time",
-      flex: 1,
-      renderCell: (params) => {
-        if (params.row.isLoading)
-          return <Skeleton variant="text" width="50%" />;
-        return params.value;
-      },
-      valueGetter: (value, row) =>
-        row.timestamp
-          ? new Date(row.timestamp.seconds * 1000).toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })
-          : "",
-    },
-    {
-      field: "actions",
-      headerName: "",
-      flex: 0.5,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => {
-        if (params.row.isLoading)
-          return (
-            <Skeleton
-              variant="rectangular"
-              width={40}
-              height={40}
-              sx={{ borderRadius: 4 }}
-            />
-          );
-        return (
-          <>
-            <IconButton
-              onClick={(event) => {
-                event.stopPropagation();
-                setAnchorEl(event.currentTarget);
-                setSelectedRow(params.row);
-              }}
-              size="small"
-              sx={{ p: 0.5 }}
-            >
-              <MoreVertIcon fontSize="small" />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={() => {
-                setAnchorEl(null);
-                setSelectedRow(null);
-              }}
-            >
-              <MenuItem
-                onClick={() => {
-                  console.log("Respond to row:", selectedRow);
-                  setAnchorEl(null);
-                  setSelectedRow(null);
-                }}
-              >
-                Respond
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  console.log("Ignore row:", selectedRow);
-                  setAnchorEl(null);
-                  setSelectedRow(null);
-                }}
-              >
-                <ListItemIcon>
-                  <BlockIcon fontSize="small" />
-                </ListItemIcon>
-                Ignore
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  console.log("Delete row:", selectedRow);
-                  setAnchorEl(null);
-                  setSelectedRow(null);
-                }}
-              >
-                <ListItemIcon>
-                  <DeleteIcon fontSize="small" />
-                </ListItemIcon>
-                Delete
-              </MenuItem>
-            </Menu>
-          </>
-        );
-      },
-    },
-  ];
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    setShowContent(false);
-    try {
-      const reportsData = await getAllReportsFromFirebase();
-      setReports(reportsData);
-      console.log(reportsData);
-    } catch (err) {
-      console.error("Error fetching reports:", err);
-    } finally {
-      setIsLoading(false);
-      setShowContent(true);
-    }
+  const getInitials = (name) => {
+    if (!name) return "";
+    return name
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase())
+      .join("");
   };
 
-  const filteredReports = reports
-    .filter(
-      (report) =>
-        (report.title || "").toLowerCase().includes(searchText.toLowerCase()) ||
-        (report.description || "")
-          .toLowerCase()
-          .includes(searchText.toLowerCase())
-    )
-    .filter(
-      (report) =>
-        statusFilter === "all" || report.status?.toLowerCase() === statusFilter
-    );
+  const handleTabChange = (event, newValue) => {
+    setValue(newValue);
+  };
 
-  const displayRows = isLoading
-    ? dummyRows.map((row) => ({ ...row, isLoading: true }))
-    : filteredReports;
+  // const getStatusColor = (status) => {
+  //   if (status === "Paid" || status === "Delivered") return "success";
+  //   if (status === "Pending" || status === "Processing") return "warning";
+  //   return "default";
+  // };
 
   return (
     <Fade in={showContent} timeout={600}>
-      <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Box sx={{ flexGrow: 1 }}>
+        {/* Profile Header */}
         <Box
           sx={{
+            position: "relative",
+            height: 200,
+            backgroundColor: "#000",
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
+            alignItems: "flex-end",
+            borderRadius: 3,
           }}
         >
-          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-            Profile
-          </Typography>
-
+          <Box
+            sx={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              zIndex: 1,
+              backgroundColor: "rgba(255,255,255,0.9)",
+              borderRadius: "50%",
+              p: 0.5,
+            }}
+          >
+            <IconButton
+              sx={{ color: "#2ED573" }}
+              onClick={() => console.log("Upload Cover Photo")}
+            >
+              <EditIcon />
+            </IconButton>
+          </Box>
         </Box>
-        <Paper sx={{ height: "auto", width: "100%", overflow: "hidden" }}>
-          
-        </Paper>
+
+        <Box sx={{ p: 3, mx: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Avatar
+              sx={{
+                width: 80,
+                height: 80,
+                mr: 3,
+                border: "4px solid white",
+                boxShadow: 2,
+              }}
+            >
+              {getInitials(userDoc?.firstName)}
+            </Avatar>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                {userDoc?.name}
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                {userDoc?.email}
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Admin
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Tabs */}
+          <Tabs
+            value={value}
+            onChange={handleTabChange}
+            sx={{
+              mb: 3,
+              "& .MuiTab-root.Mui-selected": {
+                color: "#2ED573",
+              },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "#2ED573",
+              },
+            }}
+          >
+            <Tab label="Account Information" />
+          </Tabs>
+
+          {/* Content based on tab */}
+          {value === 0 && <AccountInformationCard userDoc={userDoc} />}
+        </Box>
       </Box>
     </Fade>
   );
