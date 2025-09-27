@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../config/firebase";
 
 export function reportDocRef(collection, docId) {
@@ -130,3 +130,14 @@ export const getAllReportsFromFirebaseAsNofications = async () => {
     throw error;
   }
 };
+
+export async function deleteReport(docId) {
+  try {
+    const reportRef = doc(db, "allReports", docId);
+    await deleteDoc(reportRef);
+    return docId;
+  } catch (error) {
+    console.error(`Firestore Error deleting report: ${error.message}`);
+    throw error;
+  }
+}

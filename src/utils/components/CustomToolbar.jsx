@@ -35,6 +35,9 @@ import ArchiveIcon from "@mui/icons-material/Archive";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
+import PendingActionsIcon from "@mui/icons-material/PendingActions";
 
 const StyledQuickFilter = styled(QuickFilter)({
   display: "grid",
@@ -105,24 +108,27 @@ const StyledMenu = styled((props) => (
   },
 }));
 
-export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, onDelete, toggle }) {
+export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, onDelete, toggle, statusFilter, setStatusFilter }) {
   const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
   const exportMenuTriggerRef = React.useRef(null);
 
-  const hasSelectedRow = selectedRows.length > 0
+  const [statusMenuOpen, setStatusMenuOpen] = React.useState(false);
+  const statusMenuTriggerRef = React.useRef(null);
 
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const open = Boolean(anchorEl);
-    const handleClick = (event) => {
-      setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
-      setAnchorEl(null);
-    };
+  const hasSelectedRows = selectedRows.length > 0;
+
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <Toolbar>
-      {hasSelectedRow > 0 && (
+      {hasSelectedRows && (
         <>
           <Tooltip title="Respond">
             <ToolbarButton
@@ -163,58 +169,7 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
         </>
       )}
 
-      <Tooltip title="Tier sort">
-        <Button
-          id="demo-customized-button"
-          aria-controls={open ? "demo-customized-menu" : undefined}
-          aria-haspopup="true"
-          aria-expanded={open ? "true" : undefined}
-          variant="outlined"
-          disableElevation
-          onClick={handleClick}
-          endIcon={<KeyboardArrowDownIcon />}
-          sx={{
-            borderColor: '#2ED573',
-            color: '#2ED573',
-            '&:hover': {
-              borderColor: '#1EBF5F',
-              backgroundColor: 'rgba(46, 213, 115, 0.04)',
-            },
-          }}
-        >
-          Options
-        </Button>
-        <StyledMenu
-          id="demo-customized-menu"
-          slotProps={{
-            list: {
-              "aria-labelledby": "demo-customized-button",
-            },
-          }}
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-        >
-          <MenuItem onClick={handleClose} disableRipple>
-            <EditIcon />
-            Edit
-          </MenuItem>
-          <MenuItem onClick={handleClose} disableRipple>
-            <FileCopyIcon />
-            Duplicate
-          </MenuItem>
-          <Divider sx={{ my: 0.5 }} />
-          <MenuItem onClick={handleClose} disableRipple>
-            <ArchiveIcon />
-            Archive
-          </MenuItem>
-          <MenuItem onClick={handleClose} disableRipple>
-            <MoreHorizIcon />
-            More
-          </MenuItem>
-        </StyledMenu>
-      </Tooltip>
-
+      
       <Divider
         orientation="vertical"
         variant="middle"
@@ -242,6 +197,15 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
             </ToolbarButton>
           )}
         />
+      </Tooltip>
+
+      <Tooltip title="Status Filter">
+        <ToolbarButton
+          ref={statusMenuTriggerRef}
+          onClick={() => setStatusMenuOpen(true)}
+        >
+          <FilterAltIcon fontSize="small" />
+        </ToolbarButton>
       </Tooltip>
 
       <Divider
@@ -292,6 +256,43 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
         {/* <ExportExcel render={<MenuItem />}>
            Download as Excel
           </ExportExcel> */}
+      </Menu>
+
+      <Menu
+        id="status-menu"
+        anchorEl={statusMenuTriggerRef.current}
+        open={statusMenuOpen}
+        onClose={() => setStatusMenuOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem
+          onClick={() => {
+            setStatusFilter("all");
+            setStatusMenuOpen(false);
+          }}
+        >
+         
+          All
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setStatusFilter("pending");
+            setStatusMenuOpen(false);
+          }}
+        >
+         
+          Pending
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setStatusFilter("responded");
+            setStatusMenuOpen(false);
+          }}
+        >
+        
+          Responded
+        </MenuItem>
       </Menu>
 
       <StyledQuickFilter>

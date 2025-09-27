@@ -30,7 +30,7 @@ import { useEffect, useState, useRef } from "react";
 import { DataGrid, Toolbar, ToolbarButton } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import { GridToolbarContainer } from "@mui/x-data-grid";
-import { getAllReportsFromFirebase } from "../utils/services/firebase/report.service";
+import { getAllReportsFromFirebase, updateReportStatus, deleteReport } from "../utils/services/firebase/report.service";
 import { HttpStatus } from "../utils/enums/status";
 import CustomToolbar from "../utils/components/CustomToolbar";
 import ReportDetailDialog from "../utils/components/ReportDetailDialog";
@@ -67,6 +67,45 @@ function Report() {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+
+  const handleRespond = async () => {
+    if (selectedRows.length === 0) return;
+    try {
+      await Promise.all(
+        selectedRows.map((id) => updateReportStatus({ docId: id, status: "responded" }))
+      );
+      setSelectedRows([]);
+      fetchData();
+    } catch (error) {
+      console.error("Error responding to reports:", error);
+    }
+  };
+
+  const handleIgnore = async () => {
+    if (selectedRows.length === 0) return;
+    try {
+      await Promise.all(
+        selectedRows.map((id) => updateReportStatus({ docId: id, status: "ignored" }))
+      );
+      setSelectedRows([]);
+      fetchData();
+    } catch (error) {
+      console.error("Error ignoring reports:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedRows.length === 0) return;
+    try {
+      await Promise.all(
+        selectedRows.map((id) => deleteReport(id))
+      );
+      setSelectedRows([]);
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting reports:", error);
+    }
+  };
 
   const columns = [
     {
@@ -317,29 +356,6 @@ function Report() {
                 },
               }}
             />
-            {/* <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={statusFilter}
-                label="Status"
-                onChange={(e) => setStatusFilter(e.target.value)}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "15px",
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#2ED573",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#2ED573",
-                    },
-                  },
-                }}
-              >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="responded">Responded</MenuItem>
-              </Select>
-            </FormControl> */}
           </Box>
         </Box>
         <Paper sx={{ height: "auto", width: "100%", overflow: "hidden" }}>
@@ -353,7 +369,6 @@ function Report() {
               }}
               pageSizeOptions={[20, 50]}
               checkboxSelection
-              disableSelectionOnClick
               isRowSelectable={(params) => params.row.status?.toLowerCase() !== "responded"}
               onRowSelectionModelChange={(newSelection) =>
                 setSelectedRows(newSelection)
@@ -368,12 +383,11 @@ function Report() {
               slotProps={{
                 toolbar: {
                   selectedRows,
-                  onRespond: () =>
-                    console.log("Respond to selected rows:", selectedRows),
-                  onIgnore: () =>
-                    console.log("Ignore selected rows:", selectedRows),
-                  onDelete: () =>
-                    console.log("Delete selected rows:", selectedRows),
+                  onRespond: handleRespond,
+                  onIgnore: handleIgnore,
+                  onDelete: handleDelete,
+                  statusFilter,
+                  setStatusFilter,
                 },
               }}
               // autoHeight

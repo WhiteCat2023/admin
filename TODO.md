@@ -1,0 +1,4 @@
+- [x] Add deleteReport function to report.service.js
+- [x] Uncomment checkboxSelection in Report.jsx DataGrid
+- [x] Implement handleRespond, handleIgnore, handleDelete in Report.jsx with Firebase updates/deletes and refetch
+- [x] Update slotProps in Report.jsx to pass the handlers

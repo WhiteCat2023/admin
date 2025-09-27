@@ -27,6 +27,7 @@ import HistoryCard from "../utils/components/HistoryCard";
 import ProfileSummaryCard from "../utils/components/ProfileSummaryCard";
 import ReportsChartModal from "../utils/components/ReportsChartModal";
 import PushNotificationButton from "../utils/components/PushNotificationButton";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const [reports, setReports] = useState([]);
@@ -38,7 +39,7 @@ function Dashboard() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [reportNotifs, setReportNotifs] = useState([]);
   const { user, loading: authLoading, userDoc } = useAuth();
-
+  const navigate = useNavigate()
   useEffect(() => {
     fetchData();
   }, []); 
@@ -356,7 +357,7 @@ function Dashboard() {
 
   const handleRespond = () => {
     console.log("Respond to report:", selectedReport);
-    // TODO: Implement respond logic
+    navigate("/report")
   };
 
   return (
