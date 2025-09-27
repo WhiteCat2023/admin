@@ -27,7 +27,7 @@ function ChangePasswordDialog({ open, onClose, onChangePassword }) {
     onClose();
   };
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth sx={{borderRadius: 12}}>
       <DialogTitle sx={{ fontWeight: "bold" }}>Change Password</DialogTitle>
       <Divider />
       <DialogContent>

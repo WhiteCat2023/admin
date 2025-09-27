@@ -28,19 +28,14 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useState } from "react";
 import AccountInformationCard from "../utils/components/AccountInformationCard";
 import { useAuth } from "../context/AuthContext";
+import { getInitials } from "../utils/helpers";
 
 function Profile() {
   const [showContent, setShowContent] = useState(true);
   const [value, setValue] = useState(0);
   const { userDoc } = useAuth();
 
-  const getInitials = (name) => {
-    if (!name) return "";
-    return name
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase())
-      .join("");
-  };
+
 
   const handleTabChange = (event, newValue) => {
     setValue(newValue);
@@ -95,6 +90,7 @@ function Profile() {
                 mr: 3,
                 border: "4px solid white",
                 boxShadow: 2,
+                bgcolor: "#2ED573",
               }}
             >
               {getInitials(userDoc?.firstName)}

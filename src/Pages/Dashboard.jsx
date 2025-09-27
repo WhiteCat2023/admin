@@ -1,33 +1,38 @@
 import {
   Typography,
-  Button,
   Box,
   Grid,
   Card,
   CardContent,
   Avatar,
-  Divider,
   Fade,
   Badge,
-  Modal,
   CardActionArea,
+  IconButton,
 } from "@mui/material";
-import { LineChart } from "@mui/x-charts/LineChart";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import { auth } from "../utils/config/firebase";
-import InsertChartIcon from "@mui/icons-material/InsertChart";
-import ReportIcon from "@mui/icons-material/Report";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useEffect, useMemo, useState } from "react";
 import { getAllReports } from "../utils/controller/report.controller";
 import { HttpStatus } from "../utils/enums/status";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import { format } from "date-fns";
 import { useAuth } from "../context/AuthContext";
-import CloseIcon from "@mui/icons-material/Close";
+import ReportDetailDialog from "../utils/components/ReportDetailDialog";
+import { getInitials } from "../utils/helpers";
+import ReportsRespondedCard from "../utils/components/ReportsRespondedCard";
+import PendingReportsCard from "../utils/components/PendingReportsCard";
+import LatestReportCard from "../utils/components/LatestReportCard";
+import ReportsByTierCard from "../utils/components/ReportsByTierCard";
+import HistoryCard from "../utils/components/HistoryCard";
+import ProfileSummaryCard from "../utils/components/ProfileSummaryCard";
+import ReportsChartModal from "../utils/components/ReportsChartModal";
 
 function Dashboard() {
   const [reports, setReports] = useState([]);
   const [showContent, setShowContent] = useState(false);
   const [openChartModal, setOpenChartModal] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
   const { user, loading: authLoading, userDoc } = useAuth();
 
   useEffect(() => {
@@ -160,86 +165,16 @@ function Dashboard() {
           reportDate.getFullYear() === date.getFullYear()
         );
       }).length;
-      months.push({ month: monthName, responded: respondedCount, emergency: emergencyCount });
+      months.push({
+        month: monthName,
+        responded: respondedCount,
+        emergency: emergencyCount,
+      });
     }
     return months;
   }, [respondedReports, emergencyReports]);
 
-  const getTierColor = (item) => {
-    const tier = item.tier?.toLowerCase();
-    if (tier === "emergency") return "#ff0000";
-    if (tier === "high") return "#ffbb00";
-    if (tier === "medium") return "#fffb00";
-    if (tier === "low") return "#00ff22";
-    return "#666666"; // default color
-  };
 
-  const renderListItem = (item) => {
-    const formattedDate = item.timestamp?.toDate
-      ? format(item.timestamp.toDate(), "MMM d | h:mma")
-      : "";
-    return (
-      <Card key={item.id} sx={{ mb: 1, borderRadius: 2 }} elevation={0}>
-        <CardActionArea>
-          <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
-            <Divider
-              orientation="vertical"
-              sx={{
-                height: 70, // Match the text height
-                borderRightWidth: 3, // Thicker line
-                borderColor: "#2ED573", // Color
-                borderRadius: 2,
-                mr: 2, // More margin for better spacing
-              }}
-            />
-            <Box
-              sx={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 2,
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  fontWeight={700}
-                  fontSize={16}
-                >
-                  {item.title}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  fontSize={12}
-                >
-                  {formattedDate}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  fontSize={12}
-                >
-                  Status: {item.status}
-                </Typography>
-              </Box>
-              <Typography
-                variant="body1"
-                color={getTierColor(item)}
-                sx={{
-                  textShadow: "1px 1px 1px rgb(0, 0, 0)",
-                }}
-                fontSize={12}
-              >
-                {item.tier}
-              </Typography>
-            </Box>
-          </CardContent>
-        </CardActionArea>
-      </Card>
-    );
-  };
 
   const shiningEffectStyles = {
     position: "relative",
@@ -268,289 +203,139 @@ function Dashboard() {
     <Fade in={showContent} timeout={600}>
       <Box sx={{ flexGrow: 1, p: 3 }}>
         {/* Header */}
-        <Typography variant="h6" color="text.secondary">
-          Greetings! Welcome Back
-        </Typography>
-        <Typography variant="h3" sx={{ fontWeight: "bold", mb: 3 }}>
-          ADMIN
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Box>
+            <Typography variant="h6" color="text.secondary">
+              Greetings! Welcome Back
+            </Typography>
+            <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+              ADMIN
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <IconButton sx={{ color: "#2ED573", backgroundColor: "#d1fae2ff" }}>
+              <NotificationsIcon />
+            </IconButton>
+            <Card sx={{ borderRadius: 4 }}>
+              <CardActionArea sx={{ px: 2, py: 1.5, borderRadius: 4 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Badge
+                    color="success"
+                    overlap="circular"
+                    badgeContent=""
+                    variant="dot"
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "right",
+                    }}
+                  >
+                    <Avatar
+                      sx={{
+                        bgcolor: "#2ED573",
+                        width: 40,
+                        height: 40,
+                        border: "2px solid white",
+                        boxShadow: 2,
+                      }}
+                    >
+                      {getInitials(userDoc?.firstName)}
+                    </Avatar>
+                  </Badge>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      {userDoc?.name || "TotoTok Michael"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {userDoc?.email || "tmichael20@email.com"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardActionArea>
+            </Card>
+          </Box>
+        </Box>
 
         {/* Top cards */}
         <Grid container spacing={2} alignItems="stretch">
           <Grid size={6} sx={{ display: "flex" }}>
-            <Card
-              elevation={2}
-              sx={{ p: 1, flexGrow: 1, borderRadius: 4, cursor: "pointer" }}
+            <ReportsRespondedCard
+              respondedReportsLength={respondedReports.length}
               onClick={() => setOpenChartModal(true)}
-            >
-              <CardContent
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Reports responded this month
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                    {respondedReports.length}
-                  </Typography>
-                </Box>
-
-                <InsertChartIcon sx={{ fontSize: 40, color: "green" }} />
-              </CardContent>
-            </Card>
+            />
           </Grid>
 
           <Grid size={6} sx={{ display: "flex" }}>
-            <Card elevation={2} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
-              <CardContent
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Pending Reports
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                    {pendingReports.length}
-                  </Typography>
-                </Box>
-
-                <ReportIcon sx={{ fontSize: 40, color: "orange" }} />
-              </CardContent>
-            </Card>
+            <PendingReportsCard pendingReportsLength={pendingReports.length} />
           </Grid>
 
           {/* Latest report full width */}
           <Grid size={12} sx={{ display: "flex" }}>
-            <Card elevation={2} sx={{ p: 1, flexGrow: 1, borderRadius: 4 }}>
-              <CardContent sx={{ display: "flex", gap: 2 }}>
-                <Box
-                  sx={{
-                    flexGrow: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    minWidth: 200,
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="h6"
-                      gutterBottom
-                      sx={{ fontWeight: 600 }}
-                    >
-                      LATEST REPORT
-                    </Typography>
-                    <Typography
-                      color="text.primary"
-                      sx={{ fontWeight: 600, fontSize: 18 }}
-                    >
-                      {latestReport?.title || "No Latest Pending Report"}
-                    </Typography>
-                    <Typography
-                      color="text.secondary"
-                      sx={{ mt: 1, fontSize: 14 }}
-                    >
-                      {latestReport?.description || "No Latest Pending Report"}
-                    </Typography>
-                  </Box>
-
-                  <Button
-                    variant="contained"
-                    sx={{
-                      mt: 2,
-                      backgroundColor: "#2ED573",
-                      px: 7,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Respond
-                  </Button>
-                </Box>
-                {latestReport?.images?.[0] && (
-                  <Box
-                    sx={{
-                      flex: 1,
-                      minHeight: 200,
-                      width: "50%",
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      backgroundImage: `url(${latestReport.images[0]})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      backgroundRepeat: "no-repeat",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      ...shiningEffectStyles,
-                    }}
-                  />
-                )}
-              </CardContent>
-            </Card>
+            <LatestReportCard
+              latestReport={latestReport}
+              shiningEffectStyles={shiningEffectStyles}
+              onRespond={handleRespond}
+            />
           </Grid>
 
           <Grid size={4} sx={{ display: "flex" }}>
-            <Card elevation={2} sx={{ flexGrow: 1, borderRadius: 4 }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Reports by TierList
-                </Typography>
-                <Divider sx={{ my: 1 }} />
-                {latestEmergencyReport
-                  ? latestEmergencyReport.map((item) => renderListItem(item))
-                  : renderListItem({ title: "No Emergency Reports Found" })}
-
-                <Button size="small" sx={{ mt: 1 }}>
-                  View all
-                </Button>
-              </CardContent>
-            </Card>
+            <ReportsByTierCard 
+              latestEmergencyReport={latestEmergencyReport} 
+              onItemClick={(item) => {
+                setSelectedReport(item);
+                setOpenDialog(true);
+              }} 
+            />
           </Grid>
 
           <Grid size={4} sx={{ display: "flex" }}>
-            <Card elevation={2} sx={{ flexGrow: 1, borderRadius: 4 }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  History
-                </Typography>
-                <Divider sx={{ my: 1 }} />
-                {latestRepondedReport
-                  ? latestRepondedReport.map((item) => renderListItem(item))
-                  : renderListItem({ title: "No Emergency Reports Found" })}
-                <Button size="small" sx={{ mt: 1 }}>
-                  View all Tasks
-                </Button>
-              </CardContent>
-            </Card>
+            <HistoryCard 
+              latestRepondedReport={latestRepondedReport} 
+              onItemClick={(item) => {
+                setSelectedReport(item);
+                setOpenDialog(true);
+              }} 
+            />
           </Grid>
 
           <Grid size={4} sx={{ display: "flex" }}>
-            <Card
-              elevation={2}
-              sx={{ flexGrow: 1, textAlign: "center", borderRadius: 4 }}
-            >
-              <CardContent>
-                <Badge
-                  color="success"
-                  overlap="circular"
-                  badgeContent=" "
-                  anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "right",
-                  }}
-                  invisible={pendingReports.length === 0}
-                  sx={{
-                    width: 80,
-                    height: 80,
-                  }}
-                >
-                  <Avatar
-                    sx={{
-                      bgcolor: "#2ED573",
-                      width: 80,
-                      height: 80,
-                      margin: "0 auto",
-                      mb: 2,
-                    }}
-                  >
-                    <AccountCircleIcon sx={{ fontSize: 60 }} />
-                  </Avatar>
-                </Badge>
-
-                <Typography variant="h6">{userDoc?.name}</Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ fontSize: 14, color: "#adadadff" }}
-                >
-                  {userDoc?.email}
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Grid container spacing={2}>
-                  <Grid size={4}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {pendingReports.length}
-                    </Typography>
-                    <Typography variant="caption">Tasks</Typography>
-                  </Grid>
-                  <Grid size={4}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {reports.length}
-                    </Typography>
-                    <Typography variant="caption">Reports</Typography>
-                  </Grid>
-                  <Grid size={4}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {emergencyReports.length}
-                    </Typography>
-                    <Typography variant="caption">Alerts</Typography>
-                  </Grid>
-                </Grid>
-                <Button variant="outlined">Go to Profile</Button>
-              </CardContent>
-            </Card>
+            <ProfileSummaryCard
+              userDoc={userDoc}
+              pendingReportsLength={pendingReports.length}
+              reportsLength={reports.length}
+              emergencyReportsLength={emergencyReports.length}
+            />
           </Grid>
         </Grid>
       </Box>
     </Fade>
   );
 
+  const handleRespond = () => {
+    console.log("Respond to report:", selectedReport);
+    // TODO: Implement respond logic
+  };
+
   return (
     <>
       <DashboardContent />
-      <Modal open={openChartModal} onClose={() => setOpenChartModal(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 800,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            border: 0,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Reports Over Time
-            </Typography>
-            <Button onClick={() => setOpenChartModal(false)}>
-              <CloseIcon />
-            </Button>
-          </Box>
-
-          <LineChart
-            xAxis={[{ data: chartData.map((d) => d.month), scaleType: "band" }]}
-            series={[
-              { data: chartData.map((d) => d.responded), label: "Responded" },
-              {
-                data: chartData.map((d) => d.emergency),
-                label: "Emergency",
-                color: "#ff0000",
-              },
-            ]}
-            width={700}
-            height={400}
-          />
-        </Box>
-      </Modal>
+      <ReportsChartModal
+        open={openChartModal}
+        onClose={() => setOpenChartModal(false)}
+        chartData={chartData}
+      />
+      <ReportDetailDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        report={selectedReport}
+        onRespond={handleRespond}
+      />
     </>
   );
 }

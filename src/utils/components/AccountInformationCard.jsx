@@ -15,6 +15,7 @@ import { useState } from "react";
 import InputAdornment from "@mui/material/InputAdornment";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import DeleteAccountDialog from "./DeleteAccountDialog";
+import EditFieldDialog from "./EditFieldDialog";
 
 function AccountInformationCard({ userDoc }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -29,6 +30,9 @@ function AccountInformationCard({ userDoc }) {
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [editingField, setEditingField] = useState("");
+  const [editingValue, setEditingValue] = useState("");
 
   const handleFirstNameChange = (event) => {
     setFirstName(event.target.value);
@@ -56,6 +60,33 @@ function AccountInformationCard({ userDoc }) {
     setOpenDeleteModal(false);
   };
 
+  const handleOpenEdit = (field, value) => {
+    setEditingField(field);
+    setEditingValue(value);
+    setOpenEditDialog(true);
+  };
+
+  const handleSaveEdit = (newValue) => {
+    switch (editingField) {
+      case "First Name":
+        setFirstName(newValue);
+        break;
+      case "Last Name":
+        setLastName(newValue);
+        break;
+      case "Email":
+        setEmail(newValue);
+        // TODO: Validate email format
+        break;
+    }
+    // TODO: Save changes to backend
+    setOpenEditDialog(false);
+  };
+
+  const handleCloseEdit = () => {
+    setOpenEditDialog(false);
+  };
+
   return (
     <Card sx={{ p: 3, pb: 6 }}>
       <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -78,11 +109,13 @@ function AccountInformationCard({ userDoc }) {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <EditIcon
-                      sx={{
-                        color: firstNameError ? "error.main" : "#2ED573", // red if error, green otherwise
-                      }}
-                    />
+                    <IconButton onClick={() => handleOpenEdit("First Name", firstName)}>
+                      <EditIcon
+                        sx={{
+                          color: firstNameError ? "error.main" : "#2ED573", // red if error, green otherwise
+                        }}
+                      />
+                    </IconButton>
                   </InputAdornment>
                 ),
               }}
@@ -128,11 +161,13 @@ function AccountInformationCard({ userDoc }) {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <EditIcon
-                      sx={{
-                        color: lastNameError ? "error.main" : "#2ED573", // red if error, green otherwise
-                      }}
-                    />
+                    <IconButton onClick={() => handleOpenEdit("Last Name", lastName)}>
+                      <EditIcon
+                        sx={{
+                          color: lastNameError ? "error.main" : "#2ED573", // red if error, green otherwise
+                        }}
+                      />
+                    </IconButton>
                   </InputAdornment>
                 ),
               }}
@@ -176,11 +211,13 @@ function AccountInformationCard({ userDoc }) {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <EditIcon
-                      sx={{
-                        color: emailError ? "error.main" : "#2ED573", // red if error, green otherwise
-                      }}
-                    />
+                    <IconButton onClick={() => handleOpenEdit("Email", email)}>
+                      <EditIcon
+                        sx={{
+                          color: emailError ? "error.main" : "#2ED573", // red if error, green otherwise
+                        }}
+                      />
+                    </IconButton>
                   </InputAdornment>
                 ),
               }}
@@ -325,6 +362,14 @@ function AccountInformationCard({ userDoc }) {
         open={openDeleteModal}
         onClose={handleCloseDeleteModal}
         onConfirmDelete={handleConfirmDelete}
+      />
+
+      <EditFieldDialog
+        open={openEditDialog}
+        onClose={handleCloseEdit}
+        fieldName={editingField}
+        value={editingValue}
+        onSave={handleSaveEdit}
       />
     </Card>
   );

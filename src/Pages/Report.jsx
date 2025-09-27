@@ -10,10 +10,6 @@ import {
   Button,
   TextField,
   InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Grid,
   Tooltip,
   FormControl,
@@ -37,6 +33,7 @@ import { GridToolbarContainer } from "@mui/x-data-grid";
 import { getAllReportsFromFirebase } from "../utils/services/firebase/report.service";
 import { HttpStatus } from "../utils/enums/status";
 import CustomToolbar from "../utils/components/CustomToolbar";
+import ReportDetailDialog from "../utils/components/ReportDetailDialog";
 import { set } from "date-fns";
 
 
@@ -415,139 +412,12 @@ function Report() {
           </Box>
         </Paper>
         
-        <Dialog
+        <ReportDetailDialog
           open={openDialog}
           onClose={() => setOpenDialog(false)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                width: "100%",
-              }}
-            >
-              <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                {selectedReport?.title}
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-end",
-                }}
-              >
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                  {selectedReport?.timestamp
-                    ? new Date(
-                        selectedReport.timestamp.seconds * 1000
-                      ).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : ""}{" "}
-                  {selectedReport?.timestamp
-                    ? new Date(
-                        selectedReport.timestamp.seconds * 1000
-                      ).toLocaleTimeString("en-US", {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      })
-                    : ""}
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    mt: 0.5,
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Status:</strong> {selectedReport?.status}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ display: "flex", gap: 1 }}
-                  >
-                    <strong>Tier:</strong>
-                    <span style={{ display: "flex", alignItems: "center" }}>
-                      <span
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: "50%",
-                          backgroundColor: selectedReport
-                            ? getTierColor(selectedReport)
-                            : "#666666",
-                          marginRight: 4,
-                        }}
-                      ></span>
-                      {selectedReport?.tier}
-                    </span>
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-            <Divider sx={{ mt: 1 }} />
-          </DialogTitle>
-          <DialogContent sx={{ p: 3 }}>
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="body1"
-                color="text.primary"
-                sx={{ textAlign: "justify" }}
-              >
-                {selectedReport?.description}
-              </Typography>
-            </Box>
-
-            {selectedReport?.images && selectedReport.images.length > 0 && (
-              <Box>
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: "medium" }}>
-                  Images
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {selectedReport.images.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={`Report image ${index + 1}`}
-                      style={{
-                        maxWidth: "200px",
-                        maxHeight: "200px",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => window.open(image, "_blank")}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions sx={{ p: 3, pt: 2 }}>
-            <Button
-              variant="contained"
-              sx={{ bgcolor: "#2ED573", "&:hover": { bgcolor: "#1EBF5F" } }}
-              onClick={() => console.log("Respond to report:", selectedReport)}
-            >
-              Respond
-            </Button>
-            <Button
-              onClick={() => setOpenDialog(false)}
-              sx={{ color: "#2ED573" }}
-            >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
+          report={selectedReport}
+          onRespond={(report) => console.log("Respond to report:", report)}
+        />
       </Box>
     </Fade>
   );
