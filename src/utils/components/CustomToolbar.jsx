@@ -108,7 +108,15 @@ const StyledMenu = styled((props) => (
   },
 }));
 
-export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, onDelete, toggle, statusFilter, setStatusFilter }) {
+export default function CustomToolbar({
+  selectedRows = [],
+  onRespond,
+  onIgnore,
+  onDelete,
+  toggle,
+  statusFilter,
+  setStatusFilter,
+}) {
   const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
   const exportMenuTriggerRef = React.useRef(null);
 
@@ -124,30 +132,31 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
           <Tooltip title="Respond">
             <ToolbarButton
               variant="contained"
-              sx={{ bgcolor: "#2ED573", "&:hover": { bgcolor: "#1EBF5F" } }}
+              size=""
+              sx={{ color: "#2ED573", "&:hover": { color: "#00b347ff" } }}
               onClick={onRespond}
             >
-              <CheckCircleIcon />
+              <CheckCircleIcon sx={{ fontSize: 20 }} />
             </ToolbarButton>
           </Tooltip>
 
           <Tooltip title="Ignore">
             <ToolbarButton
               variant="contained"
-              sx={{ bgcolor: "#B0B0B0", "&:hover": { bgcolor: "#A0A0A0" } }}
+              sx={{ color: "#B0B0B0", "&:hover": { color: "#A0A0A0" } }}
               onClick={onIgnore}
             >
-              <BlockIcon />
+              <BlockIcon sx={{ fontSize: 20 }} />
             </ToolbarButton>
           </Tooltip>
 
           <Tooltip title="Delete">
             <ToolbarButton
               variant="contained"
-              sx={{ bgcolor: "#FF6B6B", "&:hover": { bgcolor: "#FF5B5B" } }}
+              sx={{ color: "#FF6B6B", "&:hover": { color: "#FF5B5B" } }}
               onClick={onDelete}
             >
-              <DeleteIcon />
+              <DeleteIcon sx={{ fontSize: 20 }} />
             </ToolbarButton>
           </Tooltip>
 
@@ -160,7 +169,6 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
         </>
       )}
 
-      
       <Divider
         orientation="vertical"
         variant="middle"
@@ -263,7 +271,6 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
             setStatusMenuOpen(false);
           }}
         >
-         
           All
         </MenuItem>
         <MenuItem
@@ -272,7 +279,6 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
             setStatusMenuOpen(false);
           }}
         >
-         
           Pending
         </MenuItem>
         <MenuItem
@@ -281,7 +287,6 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
             setStatusMenuOpen(false);
           }}
         >
-        
           Responded
         </MenuItem>
       </Menu>
