@@ -6,7 +6,6 @@ import ForgotPassword from "./ForgotPassword";
 import DashboardLayout from "./utils/Layout/DashboardLayout";
 import Dashboard from "./Pages/Dashboard";
 import Map from "./Pages/Map";
-import Notification from "./Pages/Notification";
 import Report from "./Pages/Report";
 import PublicRoute from "./utils/PublicRoute/PublicRoute";
 import { AuthProvider } from "./context/AuthContext.jsx";
@@ -50,7 +49,6 @@ function App() {
             { index: true, element: <Dashboard /> },
             // { path: "dashboard", element: <Dashboard /> },
             { path: "map", element: <Map /> },
-            { path: "notification", element: <Notification /> },
             { path: "report", element: <Report /> },
             { path: "profile", element: <Profile /> },
           ],
