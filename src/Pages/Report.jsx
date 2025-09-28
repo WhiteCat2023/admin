@@ -366,11 +366,12 @@ function Report() {
               pageSizeOptions={[20, 50]}
               checkboxSelection
               isRowSelectable={(params) =>
-                params.row.status?.toLowerCase() !== "responded"
+                params.row.status?.toLowerCase() !== "responded" &&
+                params.row.status?.toLowerCase() !== "ignored"
               }
               onRowSelectionModelChange={(newSelection) => {
                 setSelectedRows(newSelection);
-                console.log(selectedRows.ids)
+                console.log(selectedRows.ids);
               }}
               onRowClick={(params) => {
                 setSelectedReport(params.row);

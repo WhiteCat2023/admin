@@ -169,12 +169,6 @@ export default function CustomToolbar({
         </>
       )}
 
-      <Divider
-        orientation="vertical"
-        variant="middle"
-        flexItem
-        sx={{ mx: 0.5 }}
-      />
 
       <Tooltip title="Columns">
         <ColumnsPanelTrigger render={<ToolbarButton />}>
