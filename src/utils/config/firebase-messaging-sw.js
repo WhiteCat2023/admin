@@ -24,20 +24,20 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/vite.svg', // You can replace this with your app icon
-    badge: '/vite.svg',
-    tag: 'notification-tag', // Prevents duplicate notifications
+    icon: "/Logo.png", // You can replace this with your app icon
+    badge: "/Logo.png",
+    tag: "notification-tag", // Prevents duplicate notifications
     requireInteraction: true, // Keeps notification visible until user interacts
     actions: [
       {
-        action: 'view',
-        title: 'View'
+        action: "view",
+        title: "View",
       },
       {
-        action: 'dismiss',
-        title: 'Dismiss'
-      }
-    ]
+        action: "dismiss",
+        title: "Dismiss",
+      },
+    ],
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);

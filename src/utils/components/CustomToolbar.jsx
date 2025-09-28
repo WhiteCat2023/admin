@@ -117,15 +117,6 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
 
   const hasSelectedRows = selectedRows.length > 0;
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
   return (
     <Toolbar>
       {hasSelectedRows && (

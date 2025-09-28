@@ -30,13 +30,15 @@ import { useEffect, useState, useRef } from "react";
 import { DataGrid, Toolbar, ToolbarButton } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import { GridToolbarContainer } from "@mui/x-data-grid";
-import { getAllReportsFromFirebase, updateReportStatus, deleteReport } from "../utils/services/firebase/report.service";
+import {
+  getAllReportsFromFirebase,
+  updateReportStatus,
+  deleteReport,
+} from "../utils/services/firebase/report.service";
 import { HttpStatus } from "../utils/enums/status";
 import CustomToolbar from "../utils/components/CustomToolbar";
 import ReportDetailDialog from "../utils/components/ReportDetailDialog";
 import { set } from "date-fns";
-
-
 
 const getTierColor = (item) => {
   const tier = item.tier?.toLowerCase();
@@ -47,12 +49,11 @@ const getTierColor = (item) => {
   return "#666666"; // default color
 };
 
-
-
-
 const paginationModel = { page: 0, pageSize: 20 };
 
-const dummyRows = Array(5).fill({}).map((_, i) => ({ id: i }));
+const dummyRows = Array(5)
+  .fill({})
+  .map((_, i) => ({ id: i }));
 
 function Report() {
   const [showContent, setShowContent] = useState(true);
@@ -68,11 +69,15 @@ function Report() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
 
+  useEffect(()=>{console.log(selectedRow);},[selectedRow])
+
   const handleRespond = async () => {
     if (selectedRows.length === 0) return;
     try {
       await Promise.all(
-        selectedRows.map((id) => updateReportStatus({ docId: id, status: "responded" }))
+        selectedRows.map((id) =>
+          updateReportStatus({ docId: id, status: "responded" })
+        )
       );
       setSelectedRows([]);
       fetchData();
@@ -85,7 +90,9 @@ function Report() {
     if (selectedRows.length === 0) return;
     try {
       await Promise.all(
-        selectedRows.map((id) => updateReportStatus({ docId: id, status: "ignored" }))
+        selectedRows.map((id) =>
+          updateReportStatus({ docId: id, status: "ignored" })
+        )
       );
       setSelectedRows([]);
       fetchData();
@@ -97,9 +104,7 @@ function Report() {
   const handleDelete = async () => {
     if (selectedRows.length === 0) return;
     try {
-      await Promise.all(
-        selectedRows.map((id) => deleteReport(id))
-      );
+      await Promise.all(selectedRows.map((id) => deleteReport(id)));
       setSelectedRows([]);
       fetchData();
     } catch (error) {
@@ -228,22 +233,22 @@ function Report() {
             >
               <MoreVertIcon fontSize="small" />
             </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={() => {
-            setAnchorEl(null);
-            setSelectedRow(null);
-          }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-        >
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={() => {
+                setAnchorEl(null);
+                setSelectedRow(null);
+              }}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+            >
               <MenuItem
                 onClick={() => {
                   console.log("Respond to row:", selectedRow);
@@ -303,17 +308,22 @@ function Report() {
     }
   };
 
-  const filteredReports = reports.filter(
-    (report) =>
-      (report.title || "").toLowerCase().includes(searchText.toLowerCase()) ||
-      (report.description || "")
-        .toLowerCase()
-        .includes(searchText.toLowerCase())
-  ).filter(
-    (report) => statusFilter === "all" || report.status?.toLowerCase() === statusFilter
-  );
+  const filteredReports = reports
+    .filter(
+      (report) =>
+        (report.title || "").toLowerCase().includes(searchText.toLowerCase()) ||
+        (report.description || "")
+          .toLowerCase()
+          .includes(searchText.toLowerCase())
+    )
+    .filter(
+      (report) =>
+        statusFilter === "all" || report.status?.toLowerCase() === statusFilter
+    );
 
-  const displayRows = isLoading ? dummyRows.map(row => ({ ...row, isLoading: true })) : filteredReports;
+  const displayRows = isLoading
+    ? dummyRows.map((row) => ({ ...row, isLoading: true }))
+    : filteredReports;
 
   return (
     <Fade in={showContent} timeout={600}>
@@ -364,12 +374,16 @@ function Report() {
               showToolbar
               rows={displayRows}
               columns={columns}
+              cellSelection={false}
               initialState={{
                 pagination: { paginationModel },
               }}
               pageSizeOptions={[20, 50]}
               checkboxSelection
-              isRowSelectable={(params) => params.row.status?.toLowerCase() !== "responded"}
+              isRowSelectable={(params) =>
+                params.row.status?.toLowerCase() !== "responded" &&
+                params.row.status?.toLowerCase() !== "ignored"
+              }
               onRowSelectionModelChange={(newSelection) =>
                 setSelectedRows(newSelection)
               }
@@ -425,7 +439,7 @@ function Report() {
             />
           </Box>
         </Paper>
-        
+
         <ReportDetailDialog
           open={openDialog}
           onClose={() => setOpenDialog(false)}
