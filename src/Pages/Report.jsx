@@ -1,44 +1,30 @@
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
-  Divider,
   Skeleton,
   Fade,
-  useMediaQuery,
-  Button,
   TextField,
   InputAdornment,
-  Grid,
-  Tooltip,
-  FormControl,
-  Select,
-  InputLabel,
   MenuItem,
   ListItemIcon,
   IconButton,
   Menu,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BlockIcon from "@mui/icons-material/Block";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
-import { useEffect, useState, useRef } from "react";
-import { DataGrid, Toolbar, ToolbarButton } from "@mui/x-data-grid";
+import { useEffect, useState } from "react";
+import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
-import { GridToolbarContainer } from "@mui/x-data-grid";
 import {
   getAllReportsFromFirebase,
   updateReportStatus,
   deleteReport,
 } from "../utils/services/firebase/report.service";
-import { HttpStatus } from "../utils/enums/status";
 import CustomToolbar from "../utils/components/CustomToolbar";
 import ReportDetailDialog from "../utils/components/ReportDetailDialog";
-import { set } from "date-fns";
 
 const getTierColor = (item) => {
   const tier = item.tier?.toLowerCase();
@@ -57,10 +43,12 @@ const dummyRows = Array(5)
 
 function Report() {
   const [showContent, setShowContent] = useState(true);
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedRows, setSelectedRows] = useState({
+    type: "include",
+    ids: new Set(),
+  });
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("pending");
-  const isSmallScreen = useMediaQuery("(max-width:600px)");
   const [reports, setReports] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -68,8 +56,6 @@ function Report() {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
-
-  useEffect(()=>{console.log(selectedRow);},[selectedRow])
 
   const handleRespond = async () => {
     if (selectedRows.length === 0) return;
@@ -374,19 +360,18 @@ function Report() {
               showToolbar
               rows={displayRows}
               columns={columns}
-              cellSelection={false}
               initialState={{
                 pagination: { paginationModel },
               }}
               pageSizeOptions={[20, 50]}
               checkboxSelection
               isRowSelectable={(params) =>
-                params.row.status?.toLowerCase() !== "responded" &&
-                params.row.status?.toLowerCase() !== "ignored"
+                params.row.status?.toLowerCase() !== "responded"
               }
-              onRowSelectionModelChange={(newSelection) =>
-                setSelectedRows(newSelection)
-              }
+              onRowSelectionModelChange={(newSelection) => {
+                setSelectedRows(newSelection);
+                console.log(selectedRows.ids)
+              }}
               onRowClick={(params) => {
                 setSelectedReport(params.row);
                 setOpenDialog(true);

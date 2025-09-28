@@ -1,4 +1,8 @@
-- [x] Add deleteReport function to report.service.js
-- [x] Uncomment checkboxSelection in Report.jsx DataGrid
-- [x] Implement handleRespond, handleIgnore, handleDelete in Report.jsx with Firebase updates/deletes and refetch
-- [x] Update slotProps in Report.jsx to pass the handlers
+# TODO for Fixing gridRowSelectionManagerSelector in Report.jsx
+
+## Steps:
+
+- [ ] Step 1: Update selectedRows state initialization to an empty array.
+- [ ] Step 2: Remove unused gridRowSelectionManagerSelector import and the line defining rowSelectionManager.
+- [ ] Step 3: Verify consistency in handle functions (no code changes needed).
+- [ ] Step 4: Complete edits and confirm functionality.

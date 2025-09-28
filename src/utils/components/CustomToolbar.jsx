@@ -115,7 +115,7 @@ export default function CustomToolbar({ selectedRows = [], onRespond, onIgnore, 
   const [statusMenuOpen, setStatusMenuOpen] = React.useState(false);
   const statusMenuTriggerRef = React.useRef(null);
 
-  const hasSelectedRows = selectedRows.length > 0;
+  const hasSelectedRows = selectedRows.ids.size > 0;
 
   return (
     <Toolbar>
