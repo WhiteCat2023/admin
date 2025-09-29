@@ -73,6 +73,17 @@ function Report() {
     }
   };
 
+  const handleRespondRow = async () => {
+    if (!selectedRow.id) return;
+    try {
+      await updateReportStatus({ docId: selectedRow.id, status: "responded" });
+      setSelectedRows([]);
+      fetchData();
+    } catch (error) {
+      console.error("Error responding to reports:", error);
+    }
+  };
+
   const handleIgnore = async () => {
     if (selectedRows.ids?.size === 0) return;
     try {
@@ -88,19 +99,30 @@ function Report() {
     }
   };
 
-  const handleDelete = async () => {
+  const handleIgnoreRow = async () => {
+    if (!selectedRow.id) return;
+    try {
+      await updateReportStatus({ docId: selectedRow.id, status: "ignored" });
+      setSelectedRows([]);
+      fetchData();
+    } catch (error) {
+      console.error("Error ignoring reports:", error);
+    }
+  };
+
+  const handleDelete = () => {
     if (selectedRows.ids?.size === 0) return;
     try {
-      await Swal.fire({
+      Swal.fire({
         title: "Warning",
         text: `Are you sure you want to delete ${selectedRows.ids?.size} reports?`,
         icon: "warning",
         confirmButtonText: "Back to Login",
         confirmButtonColor: "#2ED573",
         showCancelButton: true
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          Promise.all([...selectedRows.ids].map((id) => deleteReport(id)));
+          await Promise.all([...selectedRows.ids].map((id) => deleteReport(id)));
           setSelectedRows([]);
           fetchData();
         }
@@ -110,19 +132,20 @@ function Report() {
     }
   };
 
-  const handleDeleteRow = async () => {
+  const handleDeleteRow = () => {
     if(!selectedRow) return;
     try {
-      await Swal.fire({
+      Swal.fire({
         title: "Warning",
         text: `Are you sure you want to delete this ${selectedRow?.tier} report?`,
         icon: "warning",
         confirmButtonText: "Delete",
         confirmButtonColor: "#2ED573",
-        showCancelButton: true
-      }).then((result) => {
+        showCancelButton: true,
+        topLayer: true
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          const result = deleteReport(selectedRow?.uid)
+          const result = await deleteReport(selectedRow?.id)
           if(result){
             Swal.fire({
               title: "Success",
@@ -265,6 +288,10 @@ function Report() {
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
+              elevation={1}
+              sx={{
+                boxShadow: "100px 100px 100px #888",
+              }}
               onClose={() => {
                 setAnchorEl(null);
                 setSelectedRow(null);
@@ -278,39 +305,40 @@ function Report() {
                 horizontal: "right",
               }}
             >
+              {selectedRow?.status.toLowerCase() === "pending" && (
+                <>
+                  <MenuItem
+                    onClick={() => {
+                      console.log("Respond to row:", selectedRow);
+                      handleRespondRow();
+                      setAnchorEl(null);
+                      setSelectedRow(null);
+                    }}
+                  >
+                    Respond
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      console.log("Ignore row:", selectedRow);
+                      handleIgnoreRow();
+                      setAnchorEl(null);
+                      setSelectedRow(null);
+                    }}
+                  >
+                    Ignore
+                  </MenuItem>
+                </>
+              )}
+
               <MenuItem
                 onClick={() => {
-                  console.log("Respond to row:", selectedRow);
-                  setAnchorEl(null);
-                  setSelectedRow(null);
-                }}
-              >
-                Respond
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  console.log("Ignore row:", selectedRow);
-                  setAnchorEl(null);
-                  setSelectedRow(null);
-                }}
-              >
-                <ListItemIcon>
-                  <BlockIcon fontSize="small" />
-                </ListItemIcon>
-                Ignore
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  handleDeleteRow()
+                  handleDeleteRow();
                   console.log("Delete row:", selectedRow);
 
                   setAnchorEl(null);
                   setSelectedRow(null);
                 }}
               >
-                <ListItemIcon>
-                  <DeleteIcon fontSize="small" />
-                </ListItemIcon>
                 Delete
               </MenuItem>
             </Menu>
