@@ -26,21 +26,6 @@ import {
 import CustomToolbar from "../utils/components/CustomToolbar";
 import ReportDetailDialog from "../utils/components/ReportDetailDialog";
 
-const getTierColor = (item) => {
-  const tier = item.tier?.toLowerCase();
-  if (tier === "emergency") return "#ff0000";
-  if (tier === "high") return "#ffbb00";
-  if (tier === "medium") return "#fffb00";
-  if (tier === "low") return "#00ff22";
-  return "#666666"; // default color
-};
-
-const paginationModel = { page: 0, pageSize: 20 };
-
-const dummyRows = Array(5)
-  .fill({})
-  .map((_, i) => ({ id: i }));
-
 function Report() {
   const [showContent, setShowContent] = useState(true);
   const [selectedRows, setSelectedRows] = useState({
@@ -56,12 +41,28 @@ function Report() {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+  const paginationModel = { page: 0, pageSize: 20 };
+  const dummyRows = Array(5)
+    .fill({})
+    .map((_, i) => ({ id: i }));
+
+  const getTierColor = (item) => {
+    const tier = item.tier?.toLowerCase();
+    if (tier === "emergency") return "#ff0000";
+    if (tier === "high") return "#ffbb00";
+    if (tier === "medium") return "#fffb00";
+    if (tier === "low") return "#00ff22";
+    return "#666666"; // default color
+  };
+
+  // useEffect(() => {[...selectedRows.ids].map(id => console.log(id));}, [selectedRows.ids])
+
 
   const handleRespond = async () => {
-    if (selectedRows.length === 0) return;
+    if (selectedRows.ids?.size === 0) return;
     try {
       await Promise.all(
-        selectedRows.map((id) =>
+        [...selectedRows.ids].map((id) =>
           updateReportStatus({ docId: id, status: "responded" })
         )
       );
@@ -73,10 +74,10 @@ function Report() {
   };
 
   const handleIgnore = async () => {
-    if (selectedRows.length === 0) return;
+    if (selectedRows.ids?.size === 0) return;
     try {
       await Promise.all(
-        selectedRows.map((id) =>
+        [...selectedRows.ids].map((id) =>
           updateReportStatus({ docId: id, status: "ignored" })
         )
       );
@@ -88,9 +89,10 @@ function Report() {
   };
 
   const handleDelete = async () => {
-    if (selectedRows.length === 0) return;
+    
+    if (selectedRows.ids?.size === 0) return;
     try {
-      await Promise.all(selectedRows.map((id) => deleteReport(id)));
+      await Promise.all([...selectedRows.ids].map((id) => deleteReport(id)));
       setSelectedRows([]);
       fetchData();
     } catch (error) {
@@ -371,7 +373,6 @@ function Report() {
               }
               onRowSelectionModelChange={(newSelection) => {
                 setSelectedRows(newSelection);
-                console.log(selectedRows.ids);
               }}
               onRowClick={(params) => {
                 setSelectedReport(params.row);
