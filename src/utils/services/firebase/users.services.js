@@ -53,7 +53,7 @@ export async function updateUserName(credentials){
     console.log(uid)
     if(!uid) throw new Error("User not found");
 
-    updateUserDoc("users", uid, "name", name)
+    updateUserDoc("admin", uid, "name", name)
 
     return uid
   } catch (error) {
@@ -76,7 +76,7 @@ export async function updateUserPhoneNumber(credentials) {
 
     if(!uid) throw new Error("User not found");
 
-    await setDoc(doc(db, "users", uid), {
+    await setDoc(doc(db, "admin", uid), {
       phone: phoneNumber
     })
     return uid
@@ -125,7 +125,7 @@ export function getAllUsers(callback) {
  */
 export async function getUserDoc(uid) {
   try {
-    const userDoc = userDocRef("users", uid);
+    const userDoc = userDocRef("admin", uid);
 
     if(!uid) throw new Error("User not found")
 

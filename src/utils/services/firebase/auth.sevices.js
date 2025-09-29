@@ -39,7 +39,7 @@ export async function newUserDoc(userCredentials, req) {
     const providerId = providerData?.[0]?.providerId || null;
     const photoUrl = providerData?.[0]?.photoURL || null;
 
-    await setDoc(doc(db, "users", uid), {
+    await setDoc(doc(db, "admin", uid), {
       name: displayName || `${firstName} ${lastName}`,
       firstName,
       lastName,
