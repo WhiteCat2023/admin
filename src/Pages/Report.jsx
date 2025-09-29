@@ -25,6 +25,7 @@ import {
 } from "../utils/services/firebase/report.service";
 import CustomToolbar from "../utils/components/CustomToolbar";
 import ReportDetailDialog from "../utils/components/ReportDetailDialog";
+import Swal from "sweetalert2";
 
 function Report() {
   const [showContent, setShowContent] = useState(true);
@@ -57,7 +58,6 @@ function Report() {
 
   // useEffect(() => {[...selectedRows.ids].map(id => console.log(id));}, [selectedRows.ids])
 
-
   const handleRespond = async () => {
     if (selectedRows.ids?.size === 0) return;
     try {
@@ -89,16 +89,57 @@ function Report() {
   };
 
   const handleDelete = async () => {
-    
     if (selectedRows.ids?.size === 0) return;
     try {
-      await Promise.all([...selectedRows.ids].map((id) => deleteReport(id)));
-      setSelectedRows([]);
-      fetchData();
+      await Swal.fire({
+        title: "Warning",
+        text: `Are you sure you want to delete ${selectedRows.ids?.size} reports?`,
+        icon: "warning",
+        confirmButtonText: "Back to Login",
+        confirmButtonColor: "#2ED573",
+        showCancelButton: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Promise.all([...selectedRows.ids].map((id) => deleteReport(id)));
+          setSelectedRows([]);
+          fetchData();
+        }
+      });
     } catch (error) {
       console.error("Error deleting reports:", error);
     }
   };
+
+  const handleDeleteRow = async () => {
+    if(!selectedRow) return;
+    try {
+      await Swal.fire({
+        title: "Warning",
+        text: `Are you sure you want to delete this ${selectedRow?.tier} report?`,
+        icon: "warning",
+        confirmButtonText: "Delete",
+        confirmButtonColor: "#2ED573",
+        showCancelButton: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const result = deleteReport(selectedRow?.uid)
+          if(result){
+            Swal.fire({
+              title: "Success",
+              text: `Report Deleted Permanently!`,
+              icon: "success",
+              confirmButtonText: "Ok",
+              confirmButtonColor: "#2ED573",
+            })
+          }
+          setSelectedRow(null);
+          fetchData();
+        }
+      });
+    } catch (error) {
+      console.error("Error deleting report:", error);
+    }
+  }
 
   const columns = [
     {
@@ -260,7 +301,9 @@ function Report() {
               </MenuItem>
               <MenuItem
                 onClick={() => {
+                  handleDeleteRow()
                   console.log("Delete row:", selectedRow);
+
                   setAnchorEl(null);
                   setSelectedRow(null);
                 }}
@@ -369,7 +412,7 @@ function Report() {
               checkboxSelection
               isRowSelectable={(params) =>
                 params.row.status?.toLowerCase() !== "responded" &&
-                params.row.status?.toLowerCase() !== "ignored"
+                params.row.status?.toLowerCase() !== "ignored"  
               }
               onRowSelectionModelChange={(newSelection) => {
                 setSelectedRows(newSelection);
