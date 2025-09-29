@@ -28,16 +28,18 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useState } from "react";
 import AccountInformationCard from "../utils/components/AccountInformationCard";
 import ProfilePictureModal from "../utils/components/ProfilePictureModal";
+import CoverPhotoModal from "../utils/components/CoverPhotoModal";
 import { useAuth } from "../context/AuthContext";
 import { useEffect } from "react";
 import { getInitials } from "../utils/helpers";
-import { updateProfilePicture } from "../utils/controller/users.controller";
+import { updateProfilePicture, updateCoverPhoto } from "../utils/controller/users.controller";
 import Swal from 'sweetalert2';
 
 function Profile() {
   const [showContent, setShowContent] = useState(true);
   const [value, setValue] = useState(0);
   const [openProfilePicModal, setOpenProfilePicModal] = useState(false);
+  const [openCoverPhotoModal, setOpenCoverPhotoModal] = useState(false);
   const { userDoc, refetchUserDoc } = useAuth();
 
 
@@ -91,6 +93,51 @@ function Profile() {
     }
   };
 
+  const handleUpdateCoverPhoto = async (formData) => {
+    if (!userDoc?.id) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'User ID not available',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+      return;
+    }
+
+    const newData = new FormData();
+    newData.append("uid", userDoc.id);
+    newData.append("file", formData.get('file'));
+
+    try {
+      const result = await updateCoverPhoto(newData);
+
+      if (result.status === 200) {
+        await refetchUserDoc();
+        Swal.fire({
+          title: 'Success!',
+          text: 'Cover photo updated successfully',
+          icon: 'success',
+          confirmButtonColor: '#2ED573'
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: result.message || "Failed to update cover photo",
+          icon: 'error',
+          confirmButtonColor: '#2ED573'
+        });
+      }
+    } catch (error) {
+      console.error("Error updating cover photo:", error);
+      Swal.fire({
+        title: 'Error!',
+        text: "Error updating cover photo: " + error.message,
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+    }
+  };
+
   // const getStatusColor = (status) => {
   //   if (status === "Paid" || status === "Delivered") return "success";
   //   if (status === "Pending" || status === "Processing") return "warning";
@@ -105,10 +152,23 @@ function Profile() {
           sx={{
             position: "relative",
             height: 200,
-            backgroundColor: "#000",
+            backgroundColor: userDoc?.coverPhoto ? "transparent" : "#000",
+            backgroundImage: userDoc?.coverPhoto ? `url(${userDoc.coverPhoto})` : "none",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
             display: "flex",
             alignItems: "flex-end",
             borderRadius: 3,
+            "&::before": userDoc?.coverPhoto ? {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
+              borderRadius: 3,
+            } : {},
           }}
         >
           <Box
@@ -124,7 +184,7 @@ function Profile() {
           >
             <IconButton
               sx={{ color: "#2ED573" }}
-              onClick={() => console.log("Upload Cover Photo")}
+              onClick={() => setOpenCoverPhotoModal(true)}
             >
               <EditIcon />
             </IconButton>
@@ -203,6 +263,14 @@ function Profile() {
             onClose={() => setOpenProfilePicModal(false)}
             onUpdateProfilePic={handleUpdateProfilePic}
             currentProfilePic={userDoc?.profilePic}
+          />
+
+          {/* Cover Photo Modal */}
+          <CoverPhotoModal
+            open={openCoverPhotoModal}
+            onClose={() => setOpenCoverPhotoModal(false)}
+            onUpdateCoverPhoto={handleUpdateCoverPhoto}
+            currentCoverPhoto={userDoc?.coverPhoto}
           />
         </Box>
       </Box>

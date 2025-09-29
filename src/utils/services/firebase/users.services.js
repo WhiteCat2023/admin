@@ -202,6 +202,53 @@ export async function updateProfilePic(credentials) {
   }
 }
 
+/**
+ * This function updates the user's cover photo by uploading to Firebase Storage and updating Firestore.
+ *
+ * @param {object} credentials - Contains uid and file
+ * @returns
+ */
+export async function updateCoverPhoto(credentials) {
+  try {
+    let uid, file;
+    if (credentials instanceof FormData) {
+      uid = credentials.get('uid');
+      file = credentials.get('file');
+    } else {
+      ({ uid, file } = credentials);
+    }
+
+    if (!uid) throw new Error("User not found");
+    if (!file) throw new Error("Cover photo file not provided");
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error("Invalid file type. Only JPEG, PNG images are allowed.");
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      throw new Error("File size too large. Maximum size is 5MB.");
+    }
+
+    // Upload to Firebase Storage
+    const filename = `cover.jpg`;
+    const storageRef = ref(storage, `cover_photos/${uid}/${filename}`);
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+
+    // Update Firestore
+    updateUserDoc("admin", uid, "coverPhoto", downloadURL);
+
+    return downloadURL;
+  } catch (error) {
+    console.error(`Cover photo update Error: ${error.message}`);
+    throw error;
+  }
+}
+
 
 
 

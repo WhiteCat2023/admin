@@ -1,5 +1,5 @@
 import { HttpStatus } from "../enums/status";
-import { getAllUsers, getUserDoc, updateUserName, updateUserPhoneNumber, updateProfilePic } from "../services/firebase/users.services";
+import { getAllUsers, getUserDoc, updateUserName, updateUserPhoneNumber, updateProfilePic, updateCoverPhoto as updateCoverPhotoService } from "../services/firebase/users.services";
 
 export const updateName =  async ( req ) => {
     try {
@@ -82,6 +82,24 @@ export const updateProfilePicture = async (req) => {
         };
     } catch (error) {
         console.error(`Profile picture update Error: ${error.message}`);
+        return {
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message
+        };
+    }
+}
+
+export const updateCoverPhoto = async (req) => {
+    try {
+        const url = await updateCoverPhotoService(req);
+
+        return {
+            status: HttpStatus.OK,
+            message: "Cover photo updated successfully",
+            coverPhotoUrl: url
+        };
+    } catch (error) {
+        console.error(`Cover photo update Error: ${error.message}`);
         return {
             status: HttpStatus.BAD_REQUEST,
             message: error.message
