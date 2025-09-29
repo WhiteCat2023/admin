@@ -11,19 +11,19 @@ import {
   Divider,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import InputAdornment from "@mui/material/InputAdornment";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import DeleteAccountDialog from "./DeleteAccountDialog";
 import EditFieldDialog from "./EditFieldDialog";
+import { updateUserName } from "../services/firebase/users.services";
+import { updateName } from "../controller/users.controller";
 
 function AccountInformationCard({ userDoc }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [firstName, setFirstName] = useState(userDoc?.firstName || "");
-  const [lastName, setLastName] = useState(
-    userDoc?.name?.split(" ").slice(1).join(" ") || ""
-  );
-  const [email, setEmail] = useState(userDoc?.email || "");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
   const [firstNameError, setFirstNameError] = useState();
   const [lastNameError, setLastNameError] = useState();
   const [emailError, setEmailError] = useState();
@@ -33,6 +33,12 @@ function AccountInformationCard({ userDoc }) {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editingField, setEditingField] = useState("");
   const [editingValue, setEditingValue] = useState("");
+
+  useEffect(() => {
+    setFirstName(userDoc?.firstName || "")
+    setLastName(userDoc?.lastName || "")
+    setEmail(userDoc?.email || "")
+  }, [userDoc])
 
   const handleFirstNameChange = (event) => {
     setFirstName(event.target.value);
@@ -66,20 +72,42 @@ function AccountInformationCard({ userDoc }) {
     setOpenEditDialog(true);
   };
 
-  const handleSaveEdit = (newValue) => {
+  const handleSaveEdit = async (newValue) => {
+    if (!userDoc?.id) {
+      console.error("User ID not available");
+      return;
+    }
+
+    const newData = new FormData();
+    newData.append("uid", userDoc.id);
+
     switch (editingField) {
       case "First Name":
         setFirstName(newValue);
+        newData.append("field", "firstName");
+        newData.append("value", newValue);
+        console.log(newData);
+        try {
+          await updateName(newData);
+        } catch (error) {
+          console.error("Error updating first name:", error);
+        }
         break;
       case "Last Name":
         setLastName(newValue);
+        newData.append("field", "lastName");
+        newData.append("value", newValue);
+        try {
+          await updateName(newData);
+        } catch (error) {
+          console.error("Error updating last name:", error);
+        }
         break;
       case "Email":
         setEmail(newValue);
-        // TODO: Validate email format
+        // Email update disabled - state only
         break;
     }
-    // TODO: Save changes to backend
     setOpenEditDialog(false);
   };
 
@@ -199,7 +227,7 @@ function AccountInformationCard({ userDoc }) {
         <Grid item xs={4}>
           <FormControl fullWidth sx={{ mb: 2 }} error={!!emailError}>
             <TextField
-              disabled={loading || !isEditing}
+              disabled={true}
               label="Email"
               variant="outlined"
               fullWidth
@@ -208,19 +236,6 @@ function AccountInformationCard({ userDoc }) {
               value={email}
               onChange={handleEmailChange}
               error={!!emailError}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => handleOpenEdit("Email", email)}>
-                      <EditIcon
-                        sx={{
-                          color: emailError ? "error.main" : "#2ED573", // red if error, green otherwise
-                        }}
-                      />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {

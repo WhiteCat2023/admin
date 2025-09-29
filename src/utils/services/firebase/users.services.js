@@ -49,11 +49,18 @@ export async function updateUserDoc(collection, uid, field, value) {
  */
 export async function updateUserName(credentials){
   try {
-    const { uid, name } = credentials;
+    let uid, field, value;
+    if (credentials instanceof FormData) {
+      uid = credentials.get('uid');
+      field = credentials.get('field');
+      value = credentials.get('value');
+    } else {
+      ({ uid, field, value } = credentials);
+    }
     console.log(uid)
     if(!uid) throw new Error("User not found");
 
-    updateUserDoc("admin", uid, "name", name)
+    updateUserDoc("admin", uid, field, value)
 
     return uid
   } catch (error) {
