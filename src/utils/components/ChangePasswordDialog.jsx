@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormHelperText,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -21,13 +22,40 @@ function ChangePasswordDialog({ open, onClose, onChangePassword }) {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!oldPassword) newErrors.oldPassword = "Old password is required";
+    if (!newPassword) newErrors.newPassword = "New password is required";
+    if (!confirmPassword) newErrors.confirmPassword = "Confirm password is required";
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+    if (newPassword && newPassword.length < 6) {
+      newErrors.newPassword = "Password must be at least 6 characters";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChangePassword = () => {
-    onChangePassword({ oldPassword, newPassword, confirmPassword });
+    if (validate()) {
+      onChangePassword({ oldPassword, newPassword, confirmPassword });
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setErrors({});
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    setErrors({});
     onClose();
   };
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth sx={{borderRadius: 12}}>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth sx={{borderRadius: 12}}>
       <DialogTitle sx={{ fontWeight: "bold" }}>Change Password</DialogTitle>
       <Divider />
       <DialogContent>
@@ -39,6 +67,8 @@ function ChangePasswordDialog({ open, onClose, onChangePassword }) {
             margin="normal"
             value={oldPassword}
             onChange={(e) => setOldPassword(e.target.value)}
+            error={!!errors.oldPassword}
+            helperText={errors.oldPassword}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -84,6 +114,8 @@ function ChangePasswordDialog({ open, onClose, onChangePassword }) {
             margin="normal"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
+            error={!!errors.newPassword}
+            helperText={errors.newPassword}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -129,6 +161,8 @@ function ChangePasswordDialog({ open, onClose, onChangePassword }) {
             margin="normal"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -173,13 +207,13 @@ function ChangePasswordDialog({ open, onClose, onChangePassword }) {
       </DialogContent>
       <Divider sx={{ my: 3 }} />
       <DialogActions>
-        <Button sx={{ color: "#2ED573" }} onClick={onClose}>
+        <Button sx={{ color: "#2ED573" }} onClick={handleClose}>
           Cancel
         </Button>
         <Button
           variant="contained"
           sx={{ backgroundColor: "#2ED573", color: "white" }}
-          onClick={onChangePassword}
+          onClick={handleChangePassword}
         >
           Change Password
         </Button>

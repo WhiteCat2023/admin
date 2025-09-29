@@ -1,5 +1,5 @@
 // working on this
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, signInWithCredential} from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, signInWithCredential, updatePassword, EmailAuthProvider, reauthenticateWithCredential} from "firebase/auth";
 import { auth, db } from "../../config/firebase";
 import { setDoc,doc } from "firebase/firestore";
 
@@ -52,6 +52,39 @@ export async function newUserDoc(userCredentials, req) {
     });
   } catch (error) {
     console.error(`Firestore Error: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Changes the user's password with verification.
+ * Requires reauthentication with current password for security.
+ *
+ * @param {string} email - User's email
+ * @param {string} currentPassword - Current password for verification
+ * @param {string} newPassword - New password to set
+ * @returns {Promise<void>}
+ */
+export async function changePassword(email, currentPassword, newPassword) {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("No user is currently signed in");
+    }
+
+    // Create credential for reauthentication
+    const credential = EmailAuthProvider.credential(email, currentPassword);
+
+    // Reauthenticate the user
+    await reauthenticateWithCredential(user, credential);
+
+    // Update the password
+    await updatePassword(user, newPassword);
+
+    console.log("Password updated successfully");
+  } catch (error) {
+    console.error(`Password change error: ${error.message}`);
     throw error;
   }
 }

@@ -18,6 +18,8 @@ import DeleteAccountDialog from "./DeleteAccountDialog";
 import EditFieldDialog from "./EditFieldDialog";
 import { updateUserName } from "../services/firebase/users.services";
 import { updateName } from "../controller/users.controller";
+import { updatePassword } from "../controller/auth.controller";
+import Swal from 'sweetalert2';
 
 function AccountInformationCard({ userDoc }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -52,10 +54,44 @@ function AccountInformationCard({ userDoc }) {
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
-  const handleChangePassword = (passwords) => {
-    // TODO: Implement change password logic
-    console.log('Change password:', passwords);
-    setOpenModal(false);
+  const handleChangePassword = async (passwords) => {
+    const { oldPassword, newPassword, confirmPassword } = passwords;
+
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match");
+      return;
+    }
+
+    if (!userDoc?.email) {
+      alert("User email not available");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await updatePassword({
+        email: userDoc.email,
+        currentPassword: oldPassword,
+        newPassword: newPassword,
+      });
+
+      if (result.status === 200) {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Password updated successfully',
+          icon: 'success',
+          confirmButtonColor: '#2ED573'
+        });
+        setOpenModal(false);
+      } else {
+        alert(result.message || "Failed to update password");
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      alert("Error changing password: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenDeleteModal = () => setOpenDeleteModal(true);

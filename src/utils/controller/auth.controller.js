@@ -1,4 +1,4 @@
-import { createUser, newUserDoc, signInUser, signOutUser, userForgotPassword } from "../services/firebase/auth.sevices";
+import { createUser, newUserDoc, signInUser, signOutUser, userForgotPassword, changePassword } from "../services/firebase/auth.sevices";
 import { HttpStatus } from "../enums/status";
 import { userDocRef } from "../services/firebase/users.services";
 import { sendEmailVerification } from "firebase/auth";
@@ -80,15 +80,35 @@ export const forgotPassword = async ( email ) => {
         if(!email) throw new Error("Email not specified")
 
         await userForgotPassword(email);
-        return { 
-            status: HttpStatus.OK, 
-            message: "User signed out successfully" 
+        return {
+            status: HttpStatus.OK,
+            message: "User signed out successfully"
         };
     }catch(error){
         console.error(`Forgot password Error: ${error.message}`);
-        return { 
-            status: HttpStatus.BAD_REQUEST, 
-            message: error.message 
+        return {
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message
+        };
+    }
+}
+
+export const updatePassword = async ( req ) => {
+    try{
+        const { email, currentPassword, newPassword } = req;
+
+        if(!email || !currentPassword || !newPassword) throw new Error("Email, current password, and new password are required")
+
+        await changePassword(email, currentPassword, newPassword);
+        return {
+            status: HttpStatus.OK,
+            message: "Password updated successfully"
+        };
+    }catch(error){
+        console.error(`Password update Error: ${error.message}`);
+        return {
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message
         };
     }
 }
