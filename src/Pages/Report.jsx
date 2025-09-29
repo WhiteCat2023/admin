@@ -117,12 +117,22 @@ function Report() {
         title: "Warning",
         text: `Are you sure you want to delete ${selectedRows.ids?.size} reports?`,
         icon: "warning",
-        confirmButtonText: "Back to Login",
+        confirmButtonText: "Delete",
         confirmButtonColor: "#2ED573",
         showCancelButton: true
       }).then(async (result) => {
         if (result.isConfirmed) {
-          await Promise.all([...selectedRows.ids].map((id) => deleteReport(id)));
+          await Promise.all(
+            [...selectedRows.ids].map((id) => deleteReport(id))
+          );
+          Swal.fire({
+            title: "Success",
+            text: `Report Deleted Permanently!`,
+            icon: "success",
+            confirmButtonText: "Ok",
+            confirmButtonColor: "#2ED573",
+          });
+          
           setSelectedRows([]);
           fetchData();
         }
@@ -132,7 +142,7 @@ function Report() {
     }
   };
 
-  const handleDeleteRow = () => {
+  const handleDeleteRow = () => { 
     if(!selectedRow) return;
     try {
       Swal.fire({
@@ -352,13 +362,14 @@ function Report() {
     fetchData();
   }, []);
 
+  useEffect(() => console.log(selectedRows), [setSelectedRows])
+
   const fetchData = async () => {
     setIsLoading(true);
     setShowContent(false);
     try {
       const reportsData = await getAllReportsFromFirebase();
       setReports(reportsData);
-      console.log(reportsData);
     } catch (err) {
       console.error("Error fetching reports:", err);
     } finally {
@@ -438,12 +449,13 @@ function Report() {
               }}
               pageSizeOptions={[20, 50]}
               checkboxSelection
-              isRowSelectable={(params) =>
-                params.row.status?.toLowerCase() !== "responded" &&
-                params.row.status?.toLowerCase() !== "ignored"  
-              }
+              // isRowSelectable={(params) =>
+              //   params.row.status?.toLowerCase() !== "responded" &&
+              //   params.row.status?.toLowerCase() !== "ignored"  
+              // }
               onRowSelectionModelChange={(newSelection) => {
                 setSelectedRows(newSelection);
+                // console.log(newSelection)
               }}
               onRowClick={(params) => {
                 setSelectedReport(params.row);
@@ -458,7 +470,6 @@ function Report() {
                   onRespond: handleRespond,
                   onIgnore: handleIgnore,
                   onDelete: handleDelete,
-                  statusFilter,
                   setStatusFilter,
                 },
               }}

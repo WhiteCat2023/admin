@@ -109,12 +109,10 @@ const StyledMenu = styled((props) => (
 }));
 
 export default function CustomToolbar({
-  selectedRows = {},
+  selectedRows = [],
   onRespond,
   onIgnore,
   onDelete,
-  toggle,
-  statusFilter,
   setStatusFilter,
 }) {
   const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
@@ -124,56 +122,41 @@ export default function CustomToolbar({
   const statusMenuTriggerRef = React.useRef(null);
 
   const hasSelectedRows = selectedRows.ids?.size > 0;
-  const allSelectedAreRespondedOrIgnored = hasSelectedRows && selectedRows.every(row => row.status?.toLowerCase() === "responded" || row.status?.toLowerCase() === "ignored");
 
   return (
     <Toolbar>
       {hasSelectedRows && (
         <>
-          {allSelectedAreRespondedOrIgnored ? (
-            <Tooltip title="Delete">
-              <ToolbarButton
-                variant="contained"
-                sx={{ color: "#FF6B6B", "&:hover": { color: "#FF5B5B" } }}
-                onClick={onDelete}
-              >
-                <DeleteIcon sx={{ fontSize: 20 }} />
-              </ToolbarButton>
-            </Tooltip>
-          ) : (
-            <>
-              <Tooltip title="Respond">
-                <ToolbarButton
-                  variant="contained"
-                  size=""
-                  sx={{ color: "#2ED573", "&:hover": { color: "#00b347ff" } }}
-                  onClick={onRespond}
-                >
-                  <CheckCircleIcon sx={{ fontSize: 20 }} />
-                </ToolbarButton>
-              </Tooltip>
+          <Tooltip title="Respond">
+            <ToolbarButton
+              variant="contained"
+              size=""
+              sx={{ color: "#2ED573", "&:hover": { color: "#00b347ff" } }}
+              onClick={onRespond}
+            >
+              <CheckCircleIcon sx={{ fontSize: 20 }} />
+            </ToolbarButton>
+          </Tooltip>
 
-              <Tooltip title="Ignore">
-                <ToolbarButton
-                  variant="contained"
-                  sx={{ color: "#B0B0B0", "&:hover": { color: "#A0A0A0" } }}
-                  onClick={onIgnore}
-                >
-                  <BlockIcon sx={{ fontSize: 20 }} />
-                </ToolbarButton>
-              </Tooltip>
+          <Tooltip title="Ignore">
+            <ToolbarButton
+              variant="contained"
+              sx={{ color: "#B0B0B0", "&:hover": { color: "#A0A0A0" } }}
+              onClick={onIgnore}
+            >
+              <BlockIcon sx={{ fontSize: 20 }} />
+            </ToolbarButton>
+          </Tooltip>
 
-              <Tooltip title="Delete">
-                <ToolbarButton
-                  variant="contained"
-                  sx={{ color: "#FF6B6B", "&:hover": { color: "#FF5B5B" } }}
-                  onClick={onDelete}
-                >
-                  <DeleteIcon sx={{ fontSize: 20 }} />
-                </ToolbarButton>
-              </Tooltip>
-            </>
-          )}
+          <Tooltip title="Delete">
+            <ToolbarButton
+              variant="contained"
+              sx={{ color: "#FF6B6B", "&:hover": { color: "#FF5B5B" } }}
+              onClick={onDelete}
+            >
+              <DeleteIcon sx={{ fontSize: 20 }} />
+            </ToolbarButton>
+          </Tooltip>
 
           <Divider
             orientation="vertical"

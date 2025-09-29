@@ -20,7 +20,7 @@ export async function updateReportDoc(collection, docId, field, value) {
 export async function updateReportStatus(credentials){
   try {
     const { docId, status } = credentials;
-    console.log(docId);
+    // console.log(docId);
     if (!docId) throw new Error("User not found");
 
     updateReportDoc("allReports", docId, "status", status);
