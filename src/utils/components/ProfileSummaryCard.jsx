@@ -26,6 +26,7 @@ function ProfileSummaryCard({ userDoc, pendingReportsLength, reportsLength, emer
           }}
         >
           <Avatar
+            src={userDoc?.profilePic}
             sx={{
               bgcolor: "#2ED573",
               width: 120,

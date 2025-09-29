@@ -9,6 +9,7 @@ import {
   Button,
   FormHelperText,
   Divider,
+  Avatar,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useEffect, useState } from "react";
@@ -18,6 +19,10 @@ import DeleteAccountDialog from "./DeleteAccountDialog";
 import EditFieldDialog from "./EditFieldDialog";
 import CredentialModal from "./CredentialModal";
 import EmailChangeModal from "./EmailChangeModal";
+import ProfilePictureModal from "./ProfilePictureModal";
+import { useAuth } from "../../context/AuthContext";
+import { getInitials } from "../helpers";
+import { updateProfilePicture } from "../controller/users.controller";
 import { updateUserName } from "../services/firebase/users.services";
 import { updateName } from "../controller/users.controller";
 import { updatePassword, updateEmail } from "../controller/auth.controller";
@@ -37,9 +42,11 @@ function AccountInformationCard({ userDoc }) {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openCredentialModal, setOpenCredentialModal] = useState(false);
   const [openEmailChangeModal, setOpenEmailChangeModal] = useState(false);
+  const [openProfilePicModal, setOpenProfilePicModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [editingField, setEditingField] = useState("");
   const [editingValue, setEditingValue] = useState("");
+  const { refetchUserDoc } = useAuth();
 
   useEffect(() => {
     setFirstName(userDoc?.firstName || "")
@@ -284,6 +291,61 @@ function AccountInformationCard({ userDoc }) {
     setOpenEmailChangeModal(false);
   };
 
+  const handleUpdateProfilePic = async (formData) => {
+    if (!userDoc?.id) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'User ID not available',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+      return;
+    }
+
+    const newData = new FormData();
+    newData.append("uid", userDoc.id);
+    const file = formData.get('file');
+    if (!file) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'No file selected',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+      return;
+    }
+    newData.append("file", file);
+
+    try {
+      const result = await updateProfilePicture(newData);
+
+      if (result.status === 200) {
+        await refetchUserDoc();
+        Swal.fire({
+          title: 'Success!',
+          text: 'Profile picture updated successfully',
+          icon: 'success',
+          confirmButtonColor: '#2ED573'
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: result.message || "Failed to update profile picture",
+          icon: 'error',
+          confirmButtonColor: '#2ED573'
+        });
+      }
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      Swal.fire({
+        title: 'Error!',
+        text: "Error updating profile picture: " + error.message,
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+    }
+  };
+
   return (
     <Card sx={{ p: 3, pb: 6 }}>
       <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -482,6 +544,45 @@ function AccountInformationCard({ userDoc }) {
         </Grid>
       </Grid>
 
+      {/* <Box sx={{ display: "flex", alignItems: "center", mb: 3, mt: 2 }}>
+        <Avatar
+          src={userDoc?.profilePic}
+          sx={{
+            width: 60,
+            height: 60,
+            mr: 2,
+            border: "3px solid #2ED573",
+            bgcolor: "#2ED573",
+          }}
+        >
+          {getInitials(userDoc?.firstName)}
+        </Avatar>
+        <Box>
+          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+            Profile Picture
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Update your profile picture
+          </Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            sx={{
+              mt: 1,
+              borderColor: "#2ED573",
+              color: "#2ED573",
+              "&:hover": {
+                borderColor: "#2ED573",
+                bgcolor: "rgba(46, 213, 115, 0.1)",
+              },
+            }}
+            onClick={() => setOpenProfilePicModal(true)}
+          >
+            Change Picture
+          </Button>
+        </Box>
+      </Box> */}
+
       <Typography variant="h6" sx={{ fontWeight: "bold" }}>
         Account Settings
       </Typography>
@@ -578,6 +679,12 @@ function AccountInformationCard({ userDoc }) {
         onClose={handleCloseEmailChangeModal}
         onChangeEmail={handleChangeEmail}
         currentEmail={email}
+      />
+
+      <ProfilePictureModal
+        open={openProfilePicModal}
+        onClose={() => setOpenProfilePicModal(false)}
+        onUpdateProfilePic={handleUpdateProfilePic}
       />
     </Card>
   );

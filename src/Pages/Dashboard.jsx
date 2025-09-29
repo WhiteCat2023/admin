@@ -275,6 +275,7 @@ function Dashboard() {
                     }}
                   >
                     <Avatar
+                      src={userDoc?.profilePic}
                       sx={{
                         bgcolor: "#2ED573",
                         width: 40,

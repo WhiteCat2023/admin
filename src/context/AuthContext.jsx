@@ -29,10 +29,20 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
+  const refetchUserDoc = async () => {
+    if (user) {
+      const result = await getUserInfoFromFirestore(user.uid);
+      if (result.status === 200) {
+        setUserDoc(result.data);
+      }
+    }
+  };
+
   const value = {
     user,
     loading,
     userDoc,
+    refetchUserDoc,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

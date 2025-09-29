@@ -27,18 +27,68 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import { useState } from "react";
 import AccountInformationCard from "../utils/components/AccountInformationCard";
+import ProfilePictureModal from "../utils/components/ProfilePictureModal";
 import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 import { getInitials } from "../utils/helpers";
+import { updateProfilePicture } from "../utils/controller/users.controller";
+import Swal from 'sweetalert2';
 
 function Profile() {
   const [showContent, setShowContent] = useState(true);
   const [value, setValue] = useState(0);
-  const { userDoc } = useAuth();
+  const [openProfilePicModal, setOpenProfilePicModal] = useState(false);
+  const { userDoc, refetchUserDoc } = useAuth();
 
 
 
   const handleTabChange = (event, newValue) => {
     setValue(newValue);
+  };
+
+  const handleUpdateProfilePic = async (formData) => {
+    if (!userDoc?.id) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'User ID not available',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+      return;
+    }
+
+    const newData = new FormData();
+    newData.append("uid", userDoc.id);
+    newData.append("file", formData.get('file'));
+
+    try {
+      const result = await updateProfilePicture(newData);
+
+      if (result.status === 200) {
+        await refetchUserDoc();
+        Swal.fire({
+          title: 'Success!',
+          text: 'Profile picture updated successfully',
+          icon: 'success',
+          confirmButtonColor: '#2ED573'
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: result.message || "Failed to update profile picture",
+          icon: 'error',
+          confirmButtonColor: '#2ED573'
+        });
+      }
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      Swal.fire({
+        title: 'Error!',
+        text: "Error updating profile picture: " + error.message,
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+    }
   };
 
   // const getStatusColor = (status) => {
@@ -83,18 +133,37 @@ function Profile() {
 
         <Box sx={{ p: 3, mx: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <Avatar
-              sx={{
-                width: 80,
-                height: 80,
-                mr: 3,
-                border: "4px solid white",
-                boxShadow: 2,
-                bgcolor: "#2ED573",
-              }}
-            >
-              {getInitials(userDoc?.firstName)}
-            </Avatar>
+            <Box sx={{ position: "relative" }}>
+              <Avatar
+                src={userDoc?.profilePic}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  mr: 3,
+                  border: "4px solid white",
+                  boxShadow: 2,
+                  bgcolor: "#2ED573",
+                }}
+              >
+                {getInitials(userDoc?.firstName)}
+              </Avatar>
+              <IconButton
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 20,
+                  backgroundColor: "rgba(255,255,255,0.9)",
+                  borderRadius: "50%",
+                  p: 0.5,
+                  "&:hover": {
+                    backgroundColor: "rgba(255,255,255,1)",
+                  },
+                }}
+                onClick={() => setOpenProfilePicModal(true)}
+              >
+                <EditIcon sx={{ color: "#2ED573", fontSize: 16 }} />
+              </IconButton>
+            </Box>
             <Box>
               <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                 {userDoc?.name}
@@ -127,6 +196,14 @@ function Profile() {
 
           {/* Content based on tab */}
           {value === 0 && <AccountInformationCard userDoc={userDoc} />}
+
+          {/* Profile Picture Modal */}
+          <ProfilePictureModal
+            open={openProfilePicModal}
+            onClose={() => setOpenProfilePicModal(false)}
+            onUpdateProfilePic={handleUpdateProfilePic}
+            currentProfilePic={userDoc?.profilePic}
+          />
         </Box>
       </Box>
     </Fade>
