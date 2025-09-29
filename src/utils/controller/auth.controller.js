@@ -1,4 +1,4 @@
-import { createUser, newUserDoc, signInUser, signOutUser, userForgotPassword, changePassword } from "../services/firebase/auth.sevices";
+import { createUser, newUserDoc, signInUser, signOutUser, userForgotPassword, changePassword, changeEmail } from "../services/firebase/auth.sevices";
 import { HttpStatus } from "../enums/status";
 import { userDocRef } from "../services/firebase/users.services";
 import { sendEmailVerification } from "firebase/auth";
@@ -29,7 +29,7 @@ export const signIn = async ( req ) => {
 export const checkUserIfExist = ( uid ) => {
     const userCollection = userDocRef("users", uid);
     if(userCollection) return true;
-    return false;   
+    return false;
 }
 
 export const signUp = async ( req ) => {
@@ -60,15 +60,15 @@ export const signOut = async ( req ) => {
         if(!uid) throw new Error("User id not found")
 
         await signOutUser();
-        return { 
-            status: HttpStatus.OK, 
-            message: "User signed out successfully" 
+        return {
+            status: HttpStatus.OK,
+            message: "User signed out successfully"
         };
     }catch(error){
         console.error(`Sign out Error: ${error.message}`);
-        return { 
-            status: HttpStatus.BAD_REQUEST, 
-            message: error.message 
+        return {
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message
         };
     };
 };
@@ -113,3 +113,29 @@ export const updatePassword = async ( req ) => {
     }
 }
 
+export const updateEmail = async ( req ) => {
+    try{
+        const { currentEmail, currentPassword, newEmail } = req;
+
+        if(!currentEmail || !currentPassword || !newEmail) throw new Error("Current email, current password, and new email are required")
+
+        await changeEmail(currentEmail, currentPassword, newEmail);
+        return {
+            status: HttpStatus.OK,
+            message: "Email updated successfully"
+        };
+    }catch(error){
+        console.error(`Email update Error: ${error.message}`);
+        // Handle Firebase pending email verification error
+        if (error.code === 'auth/operation-not-allowed' && error.message.includes("Please verify the new email")) {
+            return {
+                status: HttpStatus.BAD_REQUEST,
+                message: "A previous email change is pending verification. Please check your email for the verification link and complete it, or wait about 1 hour for it to expire. You can also try signing out and signing back in to refresh your session."
+            };
+        }
+        return {
+            status: HttpStatus.BAD_REQUEST,
+            message: error.message
+        };
+    }
+}

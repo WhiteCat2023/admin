@@ -16,9 +16,11 @@ import InputAdornment from "@mui/material/InputAdornment";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import DeleteAccountDialog from "./DeleteAccountDialog";
 import EditFieldDialog from "./EditFieldDialog";
+import CredentialModal from "./CredentialModal";
+import EmailChangeModal from "./EmailChangeModal";
 import { updateUserName } from "../services/firebase/users.services";
 import { updateName } from "../controller/users.controller";
-import { updatePassword } from "../controller/auth.controller";
+import { updatePassword, updateEmail } from "../controller/auth.controller";
 import Swal from 'sweetalert2';
 
 function AccountInformationCard({ userDoc }) {
@@ -33,6 +35,9 @@ function AccountInformationCard({ userDoc }) {
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openCredentialModal, setOpenCredentialModal] = useState(false);
+  const [openEmailChangeModal, setOpenEmailChangeModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [editingField, setEditingField] = useState("");
   const [editingValue, setEditingValue] = useState("");
 
@@ -58,12 +63,22 @@ function AccountInformationCard({ userDoc }) {
     const { oldPassword, newPassword, confirmPassword } = passwords;
 
     if (newPassword !== confirmPassword) {
-      alert("New passwords do not match");
+      Swal.fire({
+        title: 'Error!',
+        text: 'New passwords do not match',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
       return;
     }
 
     if (!userDoc?.email) {
-      alert("User email not available");
+      Swal.fire({
+        title: 'Error!',
+        text: 'User email not available',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
       return;
     }
 
@@ -84,11 +99,21 @@ function AccountInformationCard({ userDoc }) {
         });
         setOpenModal(false);
       } else {
-        alert(result.message || "Failed to update password");
+        Swal.fire({
+          title: 'Error!',
+          text: result.message || "Failed to update password",
+          icon: 'error',
+          confirmButtonColor: '#2ED573'
+        });
       }
     } catch (error) {
       console.error("Error changing password:", error);
-      alert("Error changing password: " + error.message);
+      Swal.fire({
+        title: 'Error!',
+        text: "Error changing password: " + error.message,
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
     } finally {
       setLoading(false);
     }
@@ -103,14 +128,24 @@ function AccountInformationCard({ userDoc }) {
   };
 
   const handleOpenEdit = (field, value) => {
-    setEditingField(field);
-    setEditingValue(value);
-    setOpenEditDialog(true);
+    if (field === "Email") {
+      setOpenCredentialModal(true);
+    } else {
+      setEditingField(field);
+      setEditingValue(value);
+      setOpenEditDialog(true);
+    }
   };
 
   const handleSaveEdit = async (newValue) => {
     if (!userDoc?.id) {
       console.error("User ID not available");
+      Swal.fire({
+        title: 'Error!',
+        text: 'User ID not available',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
       return;
     }
 
@@ -125,8 +160,20 @@ function AccountInformationCard({ userDoc }) {
         console.log(newData);
         try {
           await updateName(newData);
+          Swal.fire({
+            title: 'Success!',
+            text: 'First name updated successfully',
+            icon: 'success',
+            confirmButtonColor: '#2ED573'
+          });
         } catch (error) {
           console.error("Error updating first name:", error);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Error updating first name: ' + error.message,
+            icon: 'error',
+            confirmButtonColor: '#2ED573'
+          });
         }
         break;
       case "Last Name":
@@ -135,8 +182,20 @@ function AccountInformationCard({ userDoc }) {
         newData.append("value", newValue);
         try {
           await updateName(newData);
+          Swal.fire({
+            title: 'Success!',
+            text: 'Last name updated successfully',
+            icon: 'success',
+            confirmButtonColor: '#2ED573'
+          });
         } catch (error) {
           console.error("Error updating last name:", error);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Error updating last name: ' + error.message,
+            icon: 'error',
+            confirmButtonColor: '#2ED573'
+          });
         }
         break;
       case "Email":
@@ -149,6 +208,80 @@ function AccountInformationCard({ userDoc }) {
 
   const handleCloseEdit = () => {
     setOpenEditDialog(false);
+  };
+
+  const handleCredentialAuthenticate = async (password) => {
+    setCurrentPassword(password);
+    setOpenCredentialModal(false);
+    setOpenEmailChangeModal(true);
+  };
+
+  const handleCloseCredentialModal = () => {
+    setOpenCredentialModal(false);
+  };
+
+  const handleChangeEmail = async (newEmail) => {
+    if (!userDoc?.email) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'User email not available',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+      return;
+    }
+
+    if (!currentPassword) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'Password not available',
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await updateEmail({
+        currentEmail: userDoc.email,
+        currentPassword: currentPassword,
+        newEmail: newEmail,
+      });
+
+      if (result.status === 200) {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Email updated successfully',
+          icon: 'success',
+          confirmButtonColor: '#2ED573'
+        });
+        setEmail(newEmail);
+        setCurrentPassword("");
+        setOpenEmailChangeModal(false);
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: result.message || "Failed to update email",
+          icon: 'error',
+          confirmButtonColor: '#2ED573'
+        });
+      }
+    } catch (error) {
+      console.error("Error changing email:", error);
+      Swal.fire({
+        title: 'Error!',
+        text: "Error changing email: " + error.message,
+        icon: 'error',
+        confirmButtonColor: '#2ED573'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseEmailChangeModal = () => {
+    setOpenEmailChangeModal(false);
   };
 
   return (
@@ -173,7 +306,9 @@ function AccountInformationCard({ userDoc }) {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => handleOpenEdit("First Name", firstName)}>
+                    <IconButton
+                      onClick={() => handleOpenEdit("First Name", firstName)}
+                    >
                       <EditIcon
                         sx={{
                           color: firstNameError ? "error.main" : "#2ED573", // red if error, green otherwise
@@ -225,7 +360,9 @@ function AccountInformationCard({ userDoc }) {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => handleOpenEdit("Last Name", lastName)}>
+                    <IconButton
+                      onClick={() => handleOpenEdit("Last Name", lastName)}
+                    >
                       <EditIcon
                         sx={{
                           color: lastNameError ? "error.main" : "#2ED573", // red if error, green otherwise
@@ -272,6 +409,19 @@ function AccountInformationCard({ userDoc }) {
               value={email}
               onChange={handleEmailChange}
               error={!!emailError}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => handleOpenEdit("Email", email)}>
+                      <EditIcon
+                        sx={{
+                          color: lastNameError ? "error.main" : "#2ED573", // red if error, green otherwise
+                        }}
+                      />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {
@@ -342,11 +492,7 @@ function AccountInformationCard({ userDoc }) {
         </Typography>
         <Typography variant="body2">
           If you want to change your password, you can do so below by clicking
-          the{" "}
-          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-            “Change Password Button”
-          </Typography>
-          .
+          the <strong>“Change Password Button”</strong>.
         </Typography>
 
         <Button
@@ -376,11 +522,7 @@ function AccountInformationCard({ userDoc }) {
         </Typography>
         <Typography variant="body2">
           If you want to delete your account, you can do so below by clicking
-          the{" "}
-          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-            “Delete Account Button”
-          </Typography>
-          .
+          the <strong>“Delete Account Button”</strong>.
         </Typography>
 
         <Button
@@ -421,6 +563,21 @@ function AccountInformationCard({ userDoc }) {
         fieldName={editingField}
         value={editingValue}
         onSave={handleSaveEdit}
+      />
+
+      <CredentialModal
+        open={openCredentialModal}
+        onClose={handleCloseCredentialModal}
+        onAuthenticate={handleCredentialAuthenticate}
+        title="Reauthenticate"
+        description="Please enter your current password to change your email."
+      />
+
+      <EmailChangeModal
+        open={openEmailChangeModal}
+        onClose={handleCloseEmailChangeModal}
+        onChangeEmail={handleChangeEmail}
+        currentEmail={email}
       />
     </Card>
   );
