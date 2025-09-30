@@ -1,7 +1,9 @@
 import {
   APIProvider,
   Map as GoogleMap,
-  Marker,
+  AdvancedMarker,
+  useMap,
+  useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 import {
   Box,
@@ -16,11 +18,16 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { format } from "date-fns";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { getAllReports } from "../utils/controller/report.controller";
 import { HttpStatus } from "../utils/enums/status";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBXEUzzVkNk1BpBESFqbftnG6Om66vNPY0"; // replace with env variable
+const GOOGLE_MAPS_ID = "b183e79aec18c6128664e1b8";
+
+
+
+
 
 function Map() {
   const [reports, setReports] = useState([]);
@@ -28,6 +35,11 @@ function Map() {
   const [searchText, setSearchText] = useState("");
   const [debouncedSearchText, setDebouncedSearchText] = useState("");
   const mapRef = useRef(null);
+  const directionsRendererRef = useRef(null);
+
+  const onLoad = useCallback((map) => {
+    mapRef.current = map;
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -57,7 +69,31 @@ function Map() {
 
   const handleCardClick = (item) => {
     if (item.location && mapRef.current) {
-      mapRef.current.panTo({ lat: item.location[1], lng: item.location[0] });
+      const origin = mapRef.current.getCenter();
+      const destination = { lat: item.location[1], lng: item.location[0] };
+
+      // Request directions
+      const directionsService = new window.google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin,
+          destination,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === window.google.maps.DirectionsStatus.OK) {
+            if (!directionsRendererRef.current) {
+              directionsRendererRef.current = new window.google.maps.DirectionsRenderer();
+              directionsRendererRef.current.setMap(mapRef.current);
+            }
+            directionsRendererRef.current.setDirections(result);
+            // Optionally pan to destination
+            mapRef.current.panTo(destination);
+          } else {
+            console.error("Error fetching directions", result);
+          }
+        }
+      );
     }
   };
 
@@ -241,18 +277,18 @@ function Map() {
             </Box>
 
             {/* Right side map */}
-            <Box sx={{ flex: 1 }}>
-              <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+            <Box sx={{ flex: 1, position: 'relative' }}>
+              <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={['marker', 'routes']}>
                 <GoogleMap
                   defaultZoom={16}
                   defaultCenter={{ lat: 10.309, lng: 123.893 }}
-                  options={{ gestureHandling: "greedy" }}
+                  options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID }}
                   style={{ width: "100%", height: "100%" }}
-                  onLoad={(map) => (mapRef.current = map)}
+                  onLoad={onLoad}
                 >
                   {reports.map((item) =>
                     item.location ? (
-                      <Marker
+                      <AdvancedMarker
                         key={item.id}
                         position={{
                           lat: item.location[1],
@@ -265,6 +301,7 @@ function Map() {
               </APIProvider>
             </Box>
           </Box>
+
         </Box>
       </Fade>
     );

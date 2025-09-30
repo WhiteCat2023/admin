@@ -351,8 +351,8 @@ function AccountInformationCard({ userDoc }) {
       <Typography variant="h6" sx={{ fontWeight: "bold" }}>
         Account Information
       </Typography>
-      <Divider sx={{ my: 3 }} />
-      <Grid container spacing={2}>
+      <Divider sx={{ mb: 3, mt: 1 }} />
+      <Grid container spacing={2} sx={{ mb: 5 }}>
         <Grid item xs={4}>
           <FormControl fullWidth sx={{ mb: 2 }} error={!!firstNameError}>
             <TextField
@@ -543,50 +543,10 @@ function AccountInformationCard({ userDoc }) {
           </FormControl>
         </Grid>
       </Grid>
-
-      {/* <Box sx={{ display: "flex", alignItems: "center", mb: 3, mt: 2 }}>
-        <Avatar
-          src={userDoc?.profilePic}
-          sx={{
-            width: 60,
-            height: 60,
-            mr: 2,
-            border: "3px solid #2ED573",
-            bgcolor: "#2ED573",
-          }}
-        >
-          {getInitials(userDoc?.firstName)}
-        </Avatar>
-        <Box>
-          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-            Profile Picture
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Update your profile picture
-          </Typography>
-          <Button
-            variant="outlined"
-            size="small"
-            sx={{
-              mt: 1,
-              borderColor: "#2ED573",
-              color: "#2ED573",
-              "&:hover": {
-                borderColor: "#2ED573",
-                bgcolor: "rgba(46, 213, 115, 0.1)",
-              },
-            }}
-            onClick={() => setOpenProfilePicModal(true)}
-          >
-            Change Picture
-          </Button>
-        </Box>
-      </Box> */}
-
       <Typography variant="h6" sx={{ fontWeight: "bold" }}>
         Account Settings
       </Typography>
-      <Divider sx={{ my: 3 }} />
+      <Divider sx={{ mb: 3, mt: 1 }} />
       <Box sx={{ px: 2, mb: 3 }}>
         <Typography variant="body1" sx={{ fontWeight: "bold", mb: 2 }}>
           Change Password

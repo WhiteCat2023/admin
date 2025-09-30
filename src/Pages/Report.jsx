@@ -453,9 +453,10 @@ function Report() {
               //   params.row.status?.toLowerCase() !== "responded" &&
               //   params.row.status?.toLowerCase() !== "ignored"  
               // }
+              disableRowSelectionExcludeModel
               onRowSelectionModelChange={(newSelection) => {
                 setSelectedRows(newSelection);
-                // console.log(newSelection)
+                console.log(newSelection)
               }}
               onRowClick={(params) => {
                 setSelectedReport(params.row);
