@@ -113,6 +113,7 @@ export default function CustomToolbar({
   onRespond,
   onIgnore,
   onDelete,
+  statusFilter,
   setStatusFilter,
 }) {
   const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
@@ -123,30 +124,36 @@ export default function CustomToolbar({
 
   const hasSelectedRows = selectedRows.ids?.size > 0;
 
+  const isPending = statusFilter === "pending";
+
   return (
     <Toolbar>
       {hasSelectedRows && (
         <>
-          <Tooltip title="Respond">
-            <ToolbarButton
-              variant="contained"
-              size=""
-              sx={{ color: "#2ED573", "&:hover": { color: "#00b347ff" } }}
-              onClick={onRespond}
-            >
-              <CheckCircleIcon sx={{ fontSize: 20 }} />
-            </ToolbarButton>
-          </Tooltip>
+          {isPending && (
+            <>
+              <Tooltip title="Respond">
+                <ToolbarButton
+                  variant="contained"
+                  size=""
+                  sx={{ color: "#2ED573", "&:hover": { color: "#00b347ff" } }}
+                  onClick={onRespond}
+                >
+                  <CheckCircleIcon sx={{ fontSize: 20 }} />
+                </ToolbarButton>
+              </Tooltip>
 
-          <Tooltip title="Ignore">
-            <ToolbarButton
-              variant="contained"
-              sx={{ color: "#B0B0B0", "&:hover": { color: "#A0A0A0" } }}
-              onClick={onIgnore}
-            >
-              <BlockIcon sx={{ fontSize: 20 }} />
-            </ToolbarButton>
-          </Tooltip>
+              <Tooltip title="Ignore">
+                <ToolbarButton
+                  variant="contained"
+                  sx={{ color: "#B0B0B0", "&:hover": { color: "#A0A0A0" } }}
+                  onClick={onIgnore}
+                >
+                  <BlockIcon sx={{ fontSize: 20 }} />
+                </ToolbarButton>
+              </Tooltip>
+            </>
+          )}
 
           <Tooltip title="Delete">
             <ToolbarButton
@@ -166,7 +173,6 @@ export default function CustomToolbar({
           />
         </>
       )}
-
 
       <Tooltip title="Columns">
         <ColumnsPanelTrigger render={<ToolbarButton />}>
@@ -280,6 +286,14 @@ export default function CustomToolbar({
           }}
         >
           Responded
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setStatusFilter("ignored");
+            setStatusMenuOpen(false);
+          }}
+        >
+          Ignored
         </MenuItem>
       </Menu>
 

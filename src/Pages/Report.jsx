@@ -471,6 +471,7 @@ function Report() {
                   onRespond: handleRespond,
                   onIgnore: handleIgnore,
                   onDelete: handleDelete,
+                  statusFilter,
                   setStatusFilter,
                 },
               }}
