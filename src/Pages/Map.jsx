@@ -22,24 +22,16 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { getAllReports } from "../utils/controller/report.controller";
 import { HttpStatus } from "../utils/enums/status";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBXEUzzVkNk1BpBESFqbftnG6Om66vNPY0"; // replace with env variable
+const GOOGLE_MAPS_API_KEY = "AIzaSyBXEUzzVkNk1BpBESFqbftnG6Om66vNPY0";
 const GOOGLE_MAPS_ID = "b183e79aec18c6128664e1b8";
-
-
-
-
 
 function Map() {
   const [reports, setReports] = useState([]);
   const [showContent, setShowContent] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [debouncedSearchText, setDebouncedSearchText] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
   const mapRef = useRef(null);
-  const directionsRendererRef = useRef(null);
-
-  const onLoad = useCallback((map) => {
-    mapRef.current = map;
-  }, []);
 
   useEffect(() => {
     fetchData();
@@ -67,33 +59,15 @@ function Map() {
     }
   };
 
-  const handleCardClick = (item) => {
-    if (item.location && mapRef.current) {
-      const origin = mapRef.current.getCenter();
-      const destination = { lat: item.location[1], lng: item.location[0] };
+  const onLoad = useCallback((map) => {
+    mapRef.current = map;
+  }, []);
 
-      // Request directions
-      const directionsService = new window.google.maps.DirectionsService();
-      directionsService.route(
-        {
-          origin,
-          destination,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK) {
-            if (!directionsRendererRef.current) {
-              directionsRendererRef.current = new window.google.maps.DirectionsRenderer();
-              directionsRendererRef.current.setMap(mapRef.current);
-            }
-            directionsRendererRef.current.setDirections(result);
-            // Optionally pan to destination
-            mapRef.current.panTo(destination);
-          } else {
-            console.error("Error fetching directions", result);
-          }
-        }
-      );
+  const handleCardClick = (item) => {
+    if (selectedItem && selectedItem.id === item.id) {
+      setSelectedItem(null);
+    } else {
+      setSelectedItem(item);
     }
   };
 
@@ -106,12 +80,11 @@ function Map() {
     return "#2ED573";
   };
 
-
-
   const renderListItem = (item) => {
     const formattedDate = item.timestamp?.toDate
       ? format(item.timestamp.toDate(), "MMM d | h:mma")
       : "";
+    const isSelected = selectedItem && selectedItem.id === item.id;
     return (
       <Card
         key={item.id}
@@ -119,7 +92,8 @@ function Map() {
           mb: 1,
           borderRadius: 2,
           cursor: "pointer",
-          border: "1px solid #2ED573",
+          border: isSelected ? "3px solid #2ED573" : "1px solid #2ED573",
+          backgroundColor: isSelected ? "inherit" : "white",
         }}
         elevation={0}
         onClick={() => handleCardClick(item)}
@@ -189,7 +163,9 @@ function Map() {
     () =>
       reports.filter(
         (report) =>
-          (report.title || "").toLowerCase().includes(debouncedSearchText.toLowerCase()) ||
+          (report.title || "")
+            .toLowerCase()
+            .includes(debouncedSearchText.toLowerCase()) ||
           (report.description || "")
             .toLowerCase()
             .includes(debouncedSearchText.toLowerCase())
@@ -277,37 +253,151 @@ function Map() {
             </Box>
 
             {/* Right side map */}
-            <Box sx={{ flex: 1, position: 'relative' }}>
-              <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={['marker', 'routes']}>
+            <Box sx={{ flex: 1, position: "relative" }}>
+              <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
                 <GoogleMap
                   defaultZoom={16}
                   defaultCenter={{ lat: 10.309, lng: 123.893 }}
                   options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID }}
                   style={{ width: "100%", height: "100%" }}
                   onLoad={onLoad}
+                  fullscreenControl={selectedItem}
                 >
-                  {reports.map((item) =>
-                    item.location ? (
-                      <AdvancedMarker
-                        key={item.id}
-                        position={{
-                          lat: item.location[1],
-                          lng: item.location[0],
-                        }}
-                      />
-                    ) : null
-                  )}
+                  {selectedItem
+                    ? null
+                    : reports.map((item) =>
+                        item.location &&
+                        item.location.length >= 2 &&
+                        !isNaN(parseFloat(item.location[1])) &&
+                        !isNaN(parseFloat(item.location[0])) ? (
+                          <AdvancedMarker
+                            key={item.id}
+                            position={{
+                              lat: parseFloat(item.location[1]),
+                              lng: parseFloat(item.location[0]),
+                            }}
+                          />
+                        ) : null
+                      )}
+                  <Direction selectedItem={selectedItem} />
                 </GoogleMap>
               </APIProvider>
             </Box>
           </Box>
-
         </Box>
       </Fade>
     );
   };
 
   return <MapContent />;
+}
+
+function Direction({ selectedItem }) {
+  const map = useMap();
+  const routesLibrary = useMapsLibrary("routes");
+  const [directionService, setDirectionService] = useState();
+  const [directionRenderer, setDirectionRenderer] = useState();
+  const [routes, setRoutes] = useState([]);
+  const [routeIndex, setRouteIndex] = useState();
+  const selected = routes[routeIndex];
+  const leg = selected?.legs[0];
+
+  useEffect(() => {
+    if (!routesLibrary || !map) return;
+    setDirectionService(new routesLibrary.DirectionsService());
+    setDirectionRenderer(new routesLibrary.DirectionsRenderer({ map }));
+  }, [routesLibrary, map]);
+
+  useEffect(() => {
+    if (
+      !directionService ||
+      !directionRenderer ||
+      !selectedItem ||
+      !selectedItem.location ||
+      selectedItem.location.length < 2 ||
+      isNaN(parseFloat(selectedItem.location[1])) ||
+      isNaN(parseFloat(selectedItem.location[0]))
+    ) {
+      if (directionRenderer) {
+        directionRenderer.setMap(null);
+      }
+      setRoutes([]);
+      setRouteIndex(undefined);
+      return;
+    }
+
+    const origin = map.getCenter().toJSON();
+    const destination = {
+      lat: parseFloat(selectedItem.location[1]),
+      lng: parseFloat(selectedItem.location[0]),
+    };
+
+    directionService
+      .route({
+        origin,
+        destination,
+        travelMode: google.maps.TravelMode.DRIVING,
+        provideRouteAlternatives: true,
+      })
+      .then((response) => {
+        directionRenderer.setDirections(response);
+        setRoutes(response.routes);
+        setRouteIndex(0);
+      });
+  }, [directionService, directionRenderer, selectedItem, map]);
+
+  if (!selectedItem) {
+    // Show markers only if no route selected
+    return null;
+  }
+
+  if (!leg) return null;
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 10,
+        right: 10,
+        background: "white",
+        padding: "10px",
+        borderRadius: "8px",
+        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+        zIndex: 1000,
+        maxWidth: "300px",
+      }}
+    >
+      <h2 style={{ margin: 0, fontSize: "16px" }}>{selected.summary}</h2>
+      <p style={{ margin: "5px 0", fontSize: "14px" }}>
+        {leg.start_address.split(",")[0]} to {leg.end_address.split(",")[0]}
+      </p>
+      <p style={{ margin: "5px 0", fontSize: "14px" }}>
+        Distance: {leg.distance?.text}
+      </p>
+      <p style={{ margin: "5px 0", fontSize: "14px" }}>
+        Duration: {leg.duration?.text}
+      </p>
+
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {routes.map((route, index) => (
+          <li key={route.summary} style={{ margin: "5px 0" }}>
+            <button
+              onClick={() => setRouteIndex(index)}
+              style={{
+                background: routeIndex === index ? "#2ED573" : "#f0f0f0",
+                border: "none",
+                padding: "5px 10px",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              {route.summary}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export default Map;

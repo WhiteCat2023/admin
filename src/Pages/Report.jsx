@@ -118,6 +118,7 @@ function Report() {
         text: `Are you sure you want to delete ${selectedRows.ids?.size} reports?`,
         icon: "warning",
         confirmButtonText: "Delete",
+        topLayer: true,
         confirmButtonColor: "#2ED573",
         showCancelButton: true
       }).then(async (result) => {
@@ -151,6 +152,7 @@ function Report() {
         icon: "warning",
         confirmButtonText: "Delete",
         confirmButtonColor: "#2ED573",
+        topLayer: true,
         showCancelButton: true,
         topLayer: true
       }).then(async (result) => {
