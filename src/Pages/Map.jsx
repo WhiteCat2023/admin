@@ -29,20 +29,12 @@ function Map() {
   const [reports, setReports] = useState([]);
   const [showContent, setShowContent] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [debouncedSearchText, setDebouncedSearchText] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchText(searchText);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchText]);
 
   const fetchData = async () => {
     setShowContent(false);
@@ -165,15 +157,13 @@ function Map() {
         (report) =>
           (report.title || "")
             .toLowerCase()
-            .includes(debouncedSearchText.toLowerCase()) ||
+            .includes(searchText.toLowerCase()) ||
           (report.description || "")
             .toLowerCase()
-            .includes(debouncedSearchText.toLowerCase())
+            .includes(searchText.toLowerCase())
       ),
-    [reports, debouncedSearchText]
+    [reports, searchText]
   );
-
-  const MapContent = () => {
     return (
       <Fade in={showContent} timeout={600}>
         <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -261,7 +251,7 @@ function Map() {
                   options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID }}
                   style={{ width: "100%", height: "100%" }}
                   onLoad={onLoad}
-                  fullscreenControl={selectedItem}
+                  fullscreenControl={true}
                 >
                   {selectedItem
                     ? null
@@ -287,98 +277,112 @@ function Map() {
         </Box>
       </Fade>
     );
-  };
-
-  return <MapContent />;
-}
-
 function Direction({ selectedItem }) {
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
-  const [directionService, setDirectionService] = useState();
-  const [directionRenderer, setDirectionRenderer] = useState();
+  const [directionsService, setDirectionsService] = useState(null);
+  const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [routes, setRoutes] = useState([]);
-  const [routeIndex, setRouteIndex] = useState();
-  const selected = routes[routeIndex];
-  const leg = selected?.legs[0];
+  const [routeIndex, setRouteIndex] = useState(0);
 
+  const selectedRoute = routes[routeIndex];
+  const leg = selectedRoute?.legs[0];
+
+  // Initialize Directions Service and Renderer
   useEffect(() => {
     if (!routesLibrary || !map) return;
-    setDirectionService(new routesLibrary.DirectionsService());
-    setDirectionRenderer(new routesLibrary.DirectionsRenderer({ map }));
+
+    const service = new routesLibrary.DirectionsService();
+    const renderer = new routesLibrary.DirectionsRenderer({
+      map,
+      suppressMarkers: false,
+      preserveViewport: false,
+    });
+
+    setDirectionsService(service);
+    setDirectionsRenderer(renderer);
+
+    return () => {
+      renderer.setMap(null); // Cleanup on unmount
+    };
   }, [routesLibrary, map]);
 
+  // Handle route rendering when user selects a new item
   useEffect(() => {
+    if (!directionsService || !directionsRenderer) return;
+
+    // If nothing selected, clear existing route
     if (
-      !directionService ||
-      !directionRenderer ||
       !selectedItem ||
       !selectedItem.location ||
-      selectedItem.location.length < 2 ||
-      isNaN(parseFloat(selectedItem.location[1])) ||
-      isNaN(parseFloat(selectedItem.location[0]))
+      selectedItem.location.length < 2
     ) {
-      if (directionRenderer) {
-        directionRenderer.setMap(null);
-      }
+      directionsRenderer.setDirections({ routes: [] });
       setRoutes([]);
-      setRouteIndex(undefined);
+      setRouteIndex(0);
       return;
     }
 
-    const origin = map.getCenter().toJSON();
-    const destination = {
-      lat: parseFloat(selectedItem.location[1]),
-      lng: parseFloat(selectedItem.location[0]),
-    };
+    // ✅ Clear any previous directions before new request
+    directionsRenderer.setDirections({ routes: [] });
 
-    directionService
+    const [lng, lat] = selectedItem.location.map(Number);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    const origin = { lat: 10.2943, lng: 123.8935 }; // Replace with your desired origin
+    const destination = { lat, lng };
+
+    directionsService
       .route({
         origin,
         destination,
-        travelMode: google.maps.TravelMode.DRIVING,
+        travelMode: routesLibrary.TravelMode.DRIVING,
         provideRouteAlternatives: true,
       })
       .then((response) => {
-        directionRenderer.setDirections(response);
-        setRoutes(response.routes);
-        setRouteIndex(0);
-      });
-  }, [directionService, directionRenderer, selectedItem, map]);
+        if (response?.routes?.length) {
+          directionsRenderer.setDirections(response);
+          setRoutes(response.routes);
+          setRouteIndex(0);
+        } else {
+          directionsRenderer.setDirections({ routes: [] });
+        }
+      })
+      .catch((err) => console.error("Error fetching directions:", err));
+  }, [selectedItem, directionsService, directionsRenderer, routesLibrary]);
 
-  if (!selectedItem) {
-    // Show markers only if no route selected
-    return null;
-  }
+  // Update displayed route index dynamically
+  useEffect(() => {
+    if (directionsRenderer && routes.length > 0) {
+      directionsRenderer.setRouteIndex(routeIndex);
+    }
+  }, [routeIndex, directionsRenderer, routes]);
 
-  if (!leg) return null;
+  // 🧭 Optional info card
+  if (!selectedItem || !leg) return null;
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         position: "absolute",
-        top: 10,
+        top: 60,
         right: 10,
         background: "white",
-        padding: "10px",
+        padding: 2.5,
         borderRadius: "8px",
         boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
         zIndex: 1000,
         maxWidth: "300px",
       }}
     >
-      <h2 style={{ margin: 0, fontSize: "16px" }}>{selected.summary}</h2>
-      <p style={{ margin: "5px 0", fontSize: "14px" }}>
-        {leg.start_address.split(",")[0]} to {leg.end_address.split(",")[0]}
-      </p>
-      <p style={{ margin: "5px 0", fontSize: "14px" }}>
-        Distance: {leg.distance?.text}
-      </p>
-      <p style={{ margin: "5px 0", fontSize: "14px" }}>
-        Duration: {leg.duration?.text}
-      </p>
+      <Typography variant="h6">{selectedRoute.summary}</Typography>
+      <Typography variant="body2" sx={{ mt: 1 }}>
+        {leg.start_address.split(",")[0]} → {leg.end_address.split(",")[0]}
+      </Typography>
+      <Typography variant="body2">Distance: {leg.distance?.text}</Typography>
+      <Typography variant="body2">Duration: {leg.duration?.text}</Typography>
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
+      <ul style={{ listStyle: "none", padding: 0, marginTop: 8 }}>
         {routes.map((route, index) => (
           <li key={route.summary} style={{ margin: "5px 0" }}>
             <button
@@ -396,8 +400,135 @@ function Direction({ selectedItem }) {
           </li>
         ))}
       </ul>
-    </div>
+    </Box>
   );
 }
+
+    // function Direction({ selectedItem }) {
+    //   const map = useMap();
+    //   const routesLibrary = useMapsLibrary("routes");
+    //   const [directionService, setDirectionService] = useState();
+    //   const [directionRenderer, setDirectionRenderer] = useState();
+    //   const [routes, setRoutes] = useState([]);
+    //   const [routeIndex, setRouteIndex] = useState();
+    //   const selected = routes[routeIndex];
+    //   const leg = selected?.legs[0];
+
+    //   useEffect(() => {
+    //     console.log("Routes: ", routes);
+    //   }, [routes]);
+
+    //   useEffect(() => {
+    //     if (!routesLibrary || !map) return;
+    //     setDirectionService(new routesLibrary.DirectionsService());
+    //     setDirectionRenderer(new routesLibrary.DirectionsRenderer({ map }));
+    //   }, [routesLibrary, map]);
+
+    //   useEffect(() => {
+
+    //     if (
+    //       !directionService ||
+    //       !directionRenderer ||
+    //       !selectedItem ||
+    //       !selectedItem.location ||
+    //       selectedItem.location.length < 2 ||
+    //       isNaN(parseFloat(selectedItem.location[1])) ||
+    //       isNaN(parseFloat(selectedItem.location[0]))
+    //     ) {
+    //       if (directionRenderer) {
+    //         directionRenderer.setDirections(null);
+    //       }
+    //       setRoutes([]);
+    //       setRouteIndex(undefined);
+    //       return;
+    //     }
+
+
+    //     const origin = { lat: 10.2943, lng: 123.8935 };
+    //     const destination = {
+    //       lat: parseFloat(selectedItem.location[1]),
+    //       lng: parseFloat(selectedItem.location[0]),
+    //     };
+
+    //     directionService
+    //       .route({
+    //         origin,
+    //         destination,
+    //         travelMode: routesLibrary.TravelMode.DRIVING,
+    //         provideRouteAlternatives: true,
+    //       })
+    //       .then((response) => {
+    //         directionRenderer.setDirections(response);
+    //         setRoutes(response.routes);
+    //         setRouteIndex(0);
+    //       });
+    //   }, [directionService, directionRenderer, selectedItem, map, routesLibrary]);
+
+    //   useEffect(() => {
+    //     if (
+    //       directionRenderer &&
+    //       routes.length > 0 &&
+    //       routeIndex !== undefined
+    //     ) {
+    //       directionRenderer.setRouteIndex(routeIndex);
+    //     }
+    //   }, [routeIndex, directionRenderer, routes]);
+
+    //   if (!selectedItem) {
+    //     // Show markers only if no route selected
+    //     return null;
+    //   }
+
+    //   if (!leg) return null;
+
+    //   return (
+    //     <Box
+    //       sx={{
+    //         position: "absolute",
+    //         top: 60,
+    //         right: 10,
+    //         background: "white",
+    //         padding: 2.5,
+    //         borderRadius: "8px",
+    //         boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+    //         zIndex: 1000,
+    //         maxWidth: "300px",
+    //       }}
+    //     >
+    //       <h2 style={{ margin: 0, fontSize: "16px" }}>{selected.summary}</h2>
+    //       <p style={{ margin: "5px 0", fontSize: "14px" }}>
+    //         {leg.start_address.split(",")[0]} to {leg.end_address.split(",")[0]}
+    //       </p>
+    //       <p style={{ margin: "5px 0", fontSize: "14px" }}>
+    //         Distance: {leg.distance?.text}
+    //       </p>
+    //       <p style={{ margin: "5px 0", fontSize: "14px" }}>
+    //         Duration: {leg.duration?.text}
+    //       </p>
+
+    //       <ul style={{ listStyle: "none", padding: 0 }}>
+    //         {routes.map((route, index) => (
+    //           <li key={route.summary} style={{ margin: "5px 0" }}>
+    //             <button
+    //               onClick={() => setRouteIndex(index)}
+    //               style={{
+    //                 background: routeIndex === index ? "#2ED573" : "#f0f0f0",
+    //                 border: "none",
+    //                 padding: "5px 10px",
+    //                 borderRadius: "4px",
+    //                 cursor: "pointer",
+    //               }}
+    //             >
+    //               {route.summary}
+    //             </button>
+    //           </li>
+    //         ))}
+    //       </ul>
+    //     </Box>
+    //   );
+    // }
+  };
+
+
 
 export default Map;
