@@ -226,7 +226,7 @@ function Profile() {
             </Box>
             <Box>
               <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                {userDoc?.name}
+                {`${userDoc?.firstName} ${userDoc?.lastName}`}
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 {userDoc?.email}
