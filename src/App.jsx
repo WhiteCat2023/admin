@@ -7,9 +7,11 @@ import DashboardLayout from "./utils/Layout/DashboardLayout";
 import Dashboard from "./Pages/Dashboard";
 import Map from "./Pages/Map";
 import Report from "./Pages/Report";
+import Forum from "./Pages/Forum";
 import PublicRoute from "./utils/PublicRoute/PublicRoute";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Profile from "./Pages/Profile.jsx";
+import ForumPost from "./Pages/ForumPost.jsx";
 
 function App() {
   const router = createBrowserRouter([
@@ -50,7 +52,9 @@ function App() {
             // { path: "dashboard", element: <Dashboard /> },
             { path: "map", element: <Map /> },
             { path: "report", element: <Report /> },
+            { path: "forum", element: <Forum /> },
             { path: "profile", element: <Profile /> },
+            { path: "/forum/:id", element: <ForumPost /> },
           ],
         },
       ],

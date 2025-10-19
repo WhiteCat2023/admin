@@ -19,7 +19,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import MapIcon from "@mui/icons-material/Map";
 import AssessmentIcon from "@mui/icons-material/Assessment";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import ForumIcon from "@mui/icons-material/Forum";
 import Ariba from "../../assets/Ariba.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
@@ -39,6 +39,7 @@ function DashboardLayout({ children }) {
     { text: "Dashboard", path: "", icon: <DashboardIcon /> },
     { text: "Map", path: "map", icon: <MapIcon /> },
     { text: "Reports", path: "report", icon: <AssessmentIcon /> },
+    { text: "Forum", path: "forum", icon: <ForumIcon /> },
     // { text: "Notification", path: "notification", icon: <NotificationsIcon /> },
     { text: "Profile", path: "profile", icon: <PersonIcon /> },
   ];
