@@ -7,7 +7,7 @@ import { Box, Typography, Button, Modal, TextField, Card, CardContent, Grid, Ico
 import { Add, Sort, SortByAlpha, Edit, Delete, Favorite, FavoriteBorder, Comment, Search as SearchIcon, MoreVert } from '@mui/icons-material'
 
 function Forum() {
-      const { user } = useAuth()
+      const { user, userDoc } = useAuth()
       const navigate = useNavigate()
       const isWeb = true
       const [showContent, setShowContent] = useState(false)
@@ -122,6 +122,7 @@ function Forum() {
     
       // Save discussion (new or edit)
       const saveDiscussion = async () => {
+        console.log(userDoc)
         if (!newDiscussion.title || !newDiscussion.title.trim() || !newDiscussion.description || !newDiscussion.description.trim()) {
           // Could show an error toast, highlight fields, etc.
           return
@@ -139,7 +140,7 @@ function Forum() {
             content: newDiscussion.description,
             likesCount: 0,
             commentsCount: 0,
-            authorName: user?.displayName || "Anonymous",
+            authorName:`${userDoc?.firstName}  ${userDoc?.lastName}` || "Anonymous",
             authorPhoto: user?.photoURL || "https://i.pravatar.cc/100",
             authorId: user?.uid,
             timestamp: serverTimestamp(),
