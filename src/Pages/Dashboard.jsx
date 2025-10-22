@@ -225,137 +225,6 @@ function Dashboard() {
     },
   };
 
-  const DashboardContent = () => (
-    <Fade in={showContent} timeout={600}>
-      <Box sx={{ flexGrow: 1, p: 3 }}>
-        {/* Header */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
-        >
-          <Box>
-            <Typography variant="h6" color="text.secondary">
-              Greetings! Welcome Back
-            </Typography>
-            <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-              ADMIN
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <PushNotificationButton
-              reportNotifs={reportNotifs}
-              onSelectReport={(report) => {
-                setSelectedReport(report);
-                setOpenDialog(true);
-              }}
-              setSnackbarMessage={setSnackbarMessage}
-              setSnackbarOpen={setSnackbarOpen}
-            />
-
-            <Card
-              sx={{
-                borderRadius: 4,
-                boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
-              }}
-            >
-              <CardActionArea sx={{ px: 2, py: 1.5, borderRadius: 4 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Badge
-                    color="success"
-                    overlap="circular"
-                    badgeContent=""
-                    variant="dot"
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "right",
-                    }}
-                  >
-                    <Avatar
-                      src={userDoc?.profilePic}
-                      sx={{
-                        bgcolor: "#2ED573",
-                        width: 40,
-                        height: 40,
-                        border: "2px solid white",
-                        boxShadow: 2,
-                      }}
-                    >
-                      {getInitials(userDoc?.firstName)}
-                    </Avatar>
-                  </Badge>
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {userDoc?.name || "TotoTok Michael"}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {userDoc?.email || "tmichael20@email.com"}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardActionArea>
-            </Card>
-          </Box>
-        </Box>
-
-        {/* Top cards */}
-        <Grid container spacing={2} alignItems="stretch">
-          <Grid size={6} sx={{ display: "flex" }}>
-            <ReportsRespondedCard
-              respondedReportsLength={respondedReports.length}
-              onClick={(event) => setOpenChartModal(true)}
-            />
-          </Grid>
-
-          <Grid size={6} sx={{ display: "flex" }}>
-            <PendingReportsCard pendingReportsLength={pendingReports.length} />
-          </Grid>
-
-          {/* Latest report full width */}
-          <Grid size={12} sx={{ display: "flex" }}>
-            <LatestReportCard
-              latestReport={latestReport}
-              shiningEffectStyles={shiningEffectStyles}
-              onRespond={handleRespond}
-            />
-          </Grid>
-
-          <Grid size={4} sx={{ display: "flex" }}>
-            <ReportsByTierCard
-              latestEmergencyReport={latestEmergencyReport}
-              onItemClick={(item) => {
-                setSelectedReport(item);
-                setOpenDialog(true);
-              }}
-            />
-          </Grid>
-
-          <Grid size={4} sx={{ display: "flex" }}>
-            <HistoryCard
-              latestRepondedReport={latestRepondedReport}
-              onItemClick={(item) => {
-                setSelectedReport(item);
-                setOpenDialog(true);
-              }}
-            />
-          </Grid>
-
-          <Grid size={4} sx={{ display: "flex" }}>
-            <ProfileSummaryCard
-              userDoc={userDoc}
-              pendingReportsLength={pendingReports.length}
-              reportsLength={reports.length}
-              emergencyReportsLength={emergencyReports.length}
-            />
-          </Grid>
-        </Grid>
-      </Box>
-    </Fade>
-  );
-
   const handleRespond = () => {
     console.log("Respond to report:", selectedReport);
     navigate("/report")
@@ -363,7 +232,136 @@ function Dashboard() {
 
   return (
     <>
-      <DashboardContent />
+      <Fade in={showContent} timeout={600}>
+        <Box sx={{ flexGrow: 1, p: 3 }}>
+          {/* Header */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
+            <Box>
+              <Typography variant="h6" color="text.secondary">
+                Greetings! Welcome Back
+              </Typography>
+              <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+                ADMIN
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <PushNotificationButton
+                reportNotifs={reportNotifs}
+                onSelectReport={(report) => {
+                  setSelectedReport(report);
+                  setOpenDialog(true);
+                }}
+                setSnackbarMessage={setSnackbarMessage}
+                setSnackbarOpen={setSnackbarOpen}
+              />
+
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+                }}
+              >
+                <CardActionArea sx={{ px: 2, py: 1.5, borderRadius: 4 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Badge
+                      color="success"
+                      overlap="circular"
+                      badgeContent=""
+                      variant="dot"
+                      anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "right",
+                      }}
+                    >
+                      <Avatar
+                        src={userDoc?.profilePic}
+                        sx={{
+                          bgcolor: "#2ED573",
+                          width: 40,
+                          height: 40,
+                          border: "2px solid white",
+                          boxShadow: 2,
+                        }}
+                      >
+                        {getInitials(userDoc?.firstName)}
+                      </Avatar>
+                    </Badge>
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        {userDoc?.name || "TotoTok Michael"}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {userDoc?.email || "tmichael20@email.com"}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardActionArea>
+              </Card>
+            </Box>
+          </Box>
+
+          {/* Top cards */}
+          <Grid container spacing={2} alignItems="stretch">
+            <Grid size={6} sx={{ display: "flex" }}>
+              <ReportsRespondedCard
+                respondedReportsLength={respondedReports.length}
+                onClick={(event) => setOpenChartModal(true)}
+              />
+            </Grid>
+
+            <Grid size={6} sx={{ display: "flex" }}>
+              <PendingReportsCard
+                pendingReportsLength={pendingReports.length}
+              />
+            </Grid>
+
+            {/* Latest report full width */}
+            <Grid size={12} sx={{ display: "flex" }}>
+              <LatestReportCard
+                latestReport={latestReport}
+                shiningEffectStyles={shiningEffectStyles}
+                onRespond={handleRespond}
+              />
+            </Grid>
+
+            <Grid size={4} sx={{ display: "flex" }}>
+              <ReportsByTierCard
+                latestEmergencyReport={latestEmergencyReport}
+                onItemClick={(item) => {
+                  setSelectedReport(item);
+                  setOpenDialog(true);
+                }}
+              />
+            </Grid>
+
+            <Grid size={4} sx={{ display: "flex" }}>
+              <HistoryCard
+                latestRepondedReport={latestRepondedReport}
+                onItemClick={(item) => {
+                  setSelectedReport(item);
+                  setOpenDialog(true);
+                }}
+              />
+            </Grid>
+
+            <Grid size={4} sx={{ display: "flex" }}>
+              <ProfileSummaryCard
+                userDoc={userDoc}
+                pendingReportsLength={pendingReports.length}
+                reportsLength={reports.length}
+                emergencyReportsLength={emergencyReports.length}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+      </Fade>
       <ReportsChartModal
         open={openChartModal}
         onClose={() => setOpenChartModal(false)}

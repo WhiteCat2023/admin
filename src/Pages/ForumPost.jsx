@@ -5,11 +5,12 @@ import { db } from '../utils/config/firebase'
 import { doc, getDoc, collection, onSnapshot, addDoc, deleteDoc, serverTimestamp, increment, updateDoc } from 'firebase/firestore'
 import { Box, Typography, Button, Card, CardContent, TextField, Stack, Avatar, IconButton, Paper, Container, Fade, Divider, Menu, MenuItem } from '@mui/material'
 import { ArrowBack, Delete, Send, MoreVert } from '@mui/icons-material'
+import { formatTimeAgo, getInitials } from '../utils/helpers'
 
 function ForumPost() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, userDoc } = useAuth()
   const [showContent, setShowContent] = useState(false)
   const [post, setPost] = useState(null)
   const [comments, setComments] = useState([])
@@ -64,8 +65,9 @@ function ForumPost() {
     try {
       await addDoc(collection(db, "forums", id, "comments"), {
         text: newComment,
-        authorName: user?.displayName || "Anonymous",
-        authorPhoto: user?.photoURL || "https://i.pravatar.cc/100",
+        authorName: `${userDoc?.firstName} ${userDoc?.lastName}`,
+        authorFirstName: userDoc?.firstName,
+        authorPhoto: userDoc?.profilePic,
         authorId: user?.uid,
         timestamp: serverTimestamp(),
       })
@@ -87,21 +89,6 @@ function ForumPost() {
     } catch (error) {
       console.error("Error deleting comment:", error)
     }
-  }
-
-  const formatTimeAgo = (date) => {
-    if (!date) return "..."
-    const now = new Date()
-    const diff = now - date
-    const seconds = Math.floor(diff / 1000)
-    const minutes = Math.floor(seconds / 60)
-    const hours = Math.floor(minutes / 60)
-    const days = Math.floor(hours / 24)
-
-    if (seconds < 60) return "Just now"
-    if (minutes < 60) return `${minutes}m ago`
-    if (hours < 24) return `${hours}h ago`
-    return `${days}d ago`
   }
 
   const handlePostMenuOpen = (e) => {
@@ -248,35 +235,7 @@ function ForumPost() {
                   </MenuItem>
                 </Menu>
               </Box>
-              {/* {user?.uid === post.authorId && (
-                <Box>
-                  <IconButton
-                    size="small"
-                    onClick={handlePostMenuOpen}
-                    sx={{
-                      color: "#999",
-                      "&:hover": { bgcolor: "rgba(46, 213, 115, 0.08)" },
-                    }}
-                  >
-                    <MoreVert fontSize="small" />
-                  </IconButton>
-                  <Menu
-                    anchorEl={postMenuAnchor}
-                    open={Boolean(postMenuAnchor)}
-                    onClose={handlePostMenuClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                    transformOrigin={{ vertical: "top", horizontal: "right" }}
-                  >
-                    <MenuItem
-                      onClick={handleDeletePost}
-                      sx={{ color: "#ff4444" }}
-                    >
-                      <Delete fontSize="small" sx={{ mr: 1 }} />
-                      Delete
-                    </MenuItem>
-                  </Menu>
-                </Box>
-              )} */}
+              
             </Box>
 
             <Typography
@@ -421,7 +380,9 @@ function ForumPost() {
                         src={comment.authorPhoto}
                         alt={comment.authorName}
                         sx={{ width: 40, height: 40, bgcolor: "#2ED573" }}
-                      />
+                      >
+                        {getInitials(comment.authorFirstName)}
+                      </Avatar>
                       <Box sx={{ flex: 1 }}>
                         <Box
                           sx={{
@@ -486,48 +447,6 @@ function ForumPost() {
                               </MenuItem>
                             </Menu>
                           </Box>
-                          {/* {user?.uid === comment.authorId && (
-                            <Box>
-                              <IconButton
-                                size="small"
-                                onClick={(e) =>
-                                  handleCommentMenuOpen(e, comment.id)
-                                }
-                                sx={{
-                                  color: "#999",
-                                  "&:hover": {
-                                    bgcolor: "rgba(46, 213, 115, 0.08)",
-                                  },
-                                }}
-                              >
-                                <MoreVert fontSize="small" />
-                              </IconButton>
-                              <Menu
-                                anchorEl={commentMenuAnchor}
-                                open={
-                                  Boolean(commentMenuAnchor) &&
-                                  selectedCommentId === comment.id
-                                }
-                                onClose={handleCommentMenuClose}
-                                anchorOrigin={{
-                                  vertical: "bottom",
-                                  horizontal: "right",
-                                }}
-                                transformOrigin={{
-                                  vertical: "top",
-                                  horizontal: "right",
-                                }}
-                              >
-                                <MenuItem
-                                  onClick={handleDeleteComment}
-                                  sx={{ color: "#ff4444" }}
-                                >
-                                  <Delete fontSize="small" sx={{ mr: 1 }} />
-                                  Delete
-                                </MenuItem>
-                              </Menu>
-                            </Box>
-                          )} */}
                         </Box>
                         <Typography
                           variant="body2"

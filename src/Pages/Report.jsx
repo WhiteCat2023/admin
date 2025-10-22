@@ -6,13 +6,10 @@ import {
   TextField,
   InputAdornment,
   MenuItem,
-  ListItemIcon,
   IconButton,
   Menu,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import BlockIcon from "@mui/icons-material/Block";
-import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 import { useEffect, useState } from "react";
@@ -45,7 +42,27 @@ function Report() {
   const paginationModel = { page: 0, pageSize: 20 };
   const dummyRows = Array(5)
     .fill({})
-    .map((_, i) => ({ id: i }));
+    .map((_, i) => ({ id: i })); 
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => console.log(selectedRows), [setSelectedRows]);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    setShowContent(false);
+    try {
+      const reportsData = await getAllReportsFromFirebase();
+      setReports(reportsData);
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+    } finally {
+      setIsLoading(false);
+      setShowContent(true);
+    }
+  };
 
   const getTierColor = (item) => {
     const tier = item.tier?.toLowerCase();
@@ -359,26 +376,6 @@ function Report() {
       },
     },
   ];
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => console.log(selectedRows), [setSelectedRows])
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    setShowContent(false);
-    try {
-      const reportsData = await getAllReportsFromFirebase();
-      setReports(reportsData);
-    } catch (err) {
-      console.error("Error fetching reports:", err);
-    } finally {
-      setIsLoading(false);
-      setShowContent(true);
-    }
-  };
 
   const filteredReports = reports
     .filter(

@@ -26,6 +26,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 
 function DashboardLayout({ children }) {
   const location = useLocation();
@@ -41,6 +42,7 @@ function DashboardLayout({ children }) {
     { text: "Reports", path: "report", icon: <AssessmentIcon /> },
     { text: "Forum", path: "forum", icon: <ForumIcon /> },
     // { text: "Notification", path: "notification", icon: <NotificationsIcon /> },
+    { text: "Admin Users", path: "admin-users", icon: <PeopleAltIcon /> },
     { text: "Profile", path: "profile", icon: <PersonIcon /> },
   ];
 
@@ -239,6 +241,7 @@ function DashboardLayout({ children }) {
           p: isDesktop ? 3 : 2,
           mt: isDesktop ? 0 : 7,
           width: { md: `calc(100% - ${drawerWidth}px)` },
+          // height: "100vh",
           ml: { md: `${drawerWidth}px` }, // 👈 shift content to the right of sidebar
           backgroundColor: "#f4fff6ff",
         }}

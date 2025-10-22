@@ -2,27 +2,10 @@ import {
   Avatar,
   Box,
   Typography,
-  Card,
   Fade,
-  useMediaQuery,
-  Button,
-  TextField,
-  Grid,
   IconButton,
-  Divider,
   Tabs,
   Tab,
-  AppBar,
-  Toolbar,
-  InputBase,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useState } from "react";
@@ -30,7 +13,6 @@ import AccountInformationCard from "../utils/components/AccountInformationCard";
 import ProfilePictureModal from "../utils/components/ProfilePictureModal";
 import CoverPhotoModal from "../utils/components/CoverPhotoModal";
 import { useAuth } from "../context/AuthContext";
-import { useEffect } from "react";
 import { getInitials } from "../utils/helpers";
 import { updateProfilePicture, updateCoverPhoto } from "../utils/controller/users.controller";
 import Swal from 'sweetalert2';
@@ -41,8 +23,6 @@ function Profile() {
   const [openProfilePicModal, setOpenProfilePicModal] = useState(false);
   const [openCoverPhotoModal, setOpenCoverPhotoModal] = useState(false);
   const { userDoc, refetchUserDoc } = useAuth();
-
-
 
   const handleTabChange = (event, newValue) => {
     setValue(newValue);
@@ -137,12 +117,6 @@ function Profile() {
       });
     }
   };
-
-  // const getStatusColor = (status) => {
-  //   if (status === "Paid" || status === "Delivered") return "success";
-  //   if (status === "Pending" || status === "Processing") return "warning";
-  //   return "default";
-  // };
 
   return (
     <Fade in={showContent} timeout={600}>

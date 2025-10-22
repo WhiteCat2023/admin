@@ -12,6 +12,7 @@ import PublicRoute from "./utils/PublicRoute/PublicRoute";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Profile from "./Pages/Profile.jsx";
 import ForumPost from "./Pages/ForumPost.jsx";
+import AdminUser from "./Pages/AdminUser.jsx";
 
 function App() {
   const router = createBrowserRouter([
@@ -55,6 +56,7 @@ function App() {
             { path: "forum", element: <Forum /> },
             { path: "profile", element: <Profile /> },
             { path: "/forum/:id", element: <ForumPost /> },
+            { path: "admin-users", element: <AdminUser /> },
           ],
         },
       ],
