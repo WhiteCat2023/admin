@@ -23,6 +23,7 @@ import {
 import CustomToolbar from "../utils/components/CustomToolbar";
 import ReportDetailDialog from "../utils/components/ReportDetailDialog";
 import Swal from "sweetalert2";
+import { getTierColor } from "../utils/helpers";
 
 function Report() {
   const [showContent, setShowContent] = useState(true);
@@ -42,7 +43,7 @@ function Report() {
   const paginationModel = { page: 0, pageSize: 20 };
   const dummyRows = Array(5)
     .fill({})
-    .map((_, i) => ({ id: i })); 
+    .map((_, i) => ({ id: i }));
 
   useEffect(() => {
     fetchData();
@@ -62,15 +63,6 @@ function Report() {
       setIsLoading(false);
       setShowContent(true);
     }
-  };
-
-  const getTierColor = (item) => {
-    const tier = item.tier?.toLowerCase();
-    if (tier === "emergency") return "#ff0000";
-    if (tier === "high") return "#ffbb00";
-    if (tier === "medium") return "#fffb00";
-    if (tier === "low") return "#00ff22";
-    return "#666666"; // default color
   };
 
   // useEffect(() => {[...selectedRows.ids].map(id => console.log(id));}, [selectedRows.ids])
@@ -137,7 +129,7 @@ function Report() {
         confirmButtonText: "Delete",
         topLayer: true,
         confirmButtonColor: "#2ED573",
-        showCancelButton: true
+        showCancelButton: true,
       }).then(async (result) => {
         if (result.isConfirmed) {
           await Promise.all(
@@ -150,7 +142,7 @@ function Report() {
             confirmButtonText: "Ok",
             confirmButtonColor: "#2ED573",
           });
-          
+
           setSelectedRows([]);
           fetchData();
         }
@@ -160,8 +152,8 @@ function Report() {
     }
   };
 
-  const handleDeleteRow = () => { 
-    if(!selectedRow) return;
+  const handleDeleteRow = () => {
+    if (!selectedRow) return;
     try {
       Swal.fire({
         title: "Warning",
@@ -171,18 +163,18 @@ function Report() {
         confirmButtonColor: "#2ED573",
         topLayer: true,
         showCancelButton: true,
-        topLayer: true
+        topLayer: true,
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const result = await deleteReport(selectedRow?.id)
-          if(result){
+          const result = await deleteReport(selectedRow?.id);
+          if (result) {
             Swal.fire({
               title: "Success",
               text: `Report Deleted Permanently!`,
               icon: "success",
               confirmButtonText: "Ok",
               confirmButtonColor: "#2ED573",
-            })
+            });
           }
           setSelectedRow(null);
           fetchData();
@@ -191,7 +183,7 @@ function Report() {
     } catch (error) {
       console.error("Error deleting report:", error);
     }
-  }
+  };
 
   const columns = [
     {
@@ -222,20 +214,47 @@ function Report() {
         if (params.row.isLoading)
           return <Skeleton variant="circular" width={8} height={8} />;
         return (
-          <span style={{ display: "flex", alignItems: "center" }}>
-            <span
+          // <span style={{ display: "flex", alignItems: "center" }}>
+          //   <span
+          //     style={{
+          //       width: 8,
+          //       height: 8,
+          //       borderRadius: "50%",
+          //       backgroundColor: params.row
+          //         ? getTierColor(params.row)
+          //         : "#666666",
+          //       marginRight: 4,
+          //     }}
+          //   ></span>
+          //   {params.value}
+          // </span>
+          <Box sx={{
+              flexGrow: 1,
+              display: "flex",
+              alignItems: "center",
+              height: "100%",
+          }}>
+            <Typography
+              variant="body1"
               style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: params.row
-                  ? getTierColor(params.row)
-                  : "#666666",
-                marginRight: 4,
+                display: "flex",
+                alignItems: "center",
               }}
-            ></span>
-            {params.value}
-          </span>
+              fontSize={12}
+            >
+              <Typography
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: getTierColor(params.row),
+                  marginRight: 1,
+                  verticalAlign: "middle",
+                }}
+              ></Typography>
+              {params.value}
+            </Typography>
+          </Box>
         );
       },
     },
@@ -448,14 +467,10 @@ function Report() {
               }}
               pageSizeOptions={[20, 50]}
               checkboxSelection
-              // isRowSelectable={(params) =>
-              //   params.row.status?.toLowerCase() !== "responded" &&
-              //   params.row.status?.toLowerCase() !== "ignored"  
-              // }
               disableRowSelectionExcludeModel
               onRowSelectionModelChange={(newSelection) => {
                 setSelectedRows(newSelection);
-                console.log(newSelection)
+                console.log(newSelection);
               }}
               onRowClick={(params) => {
                 setSelectedReport(params.row);

@@ -1,26 +1,8 @@
 import { Card, CardContent, Typography, Divider, Box } from "@mui/material";
 import { CardActionArea } from "@mui/material";
+import { getTierColor, formattedDate } from "../../utils/helpers";
 
 function ReportListItem({ item, onClick }) {
-  const getTierColor = (tier) => {
-    const tierLower = tier?.toLowerCase();
-    if (tierLower === "emergency") return "#ff0000";
-    if (tierLower === "high") return "#ffbb00";
-    if (tierLower === "medium") return "#fffb00";
-    if (tierLower === "low") return "#00ff22";
-    return "#666666"; // default color
-  };
-
-  const formattedDate = item.timestamp?.toDate
-    ? new Date(item.timestamp.toDate()).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-    : "";
-
   return (
     <Card key={item.id} sx={{ mb: 1, borderRadius: 2 }} elevation={0}>
       <CardActionArea onClick={() => onClick(item)}>
@@ -52,31 +34,35 @@ function ReportListItem({ item, onClick }) {
               >
                 {item.title}
               </Typography>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                fontSize={12}
-              >
-                {formattedDate}
+              <Typography variant="body1" color="text.secondary" fontSize={12}>
+                {formattedDate(item)}
               </Typography>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                fontSize={12}
-              >
+              <Typography variant="body1" color="text.secondary" fontSize={12}>
                 Status: {item.status}
               </Typography>
             </Box>
-            <Typography
-              variant="body1"
-              color={getTierColor(item.tier)}
-              sx={{
-                textShadow: "1px 1px 1px rgb(0, 0, 0)",
-              }}
-              fontSize={12}
-            >
-              {item.tier}
-            </Typography>
+            <Box>
+              <Typography
+                variant="body1"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                fontSize={12}
+              >
+                <Typography
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: getTierColor(item),
+                    marginRight: 1,
+                    verticalAlign: "middle",
+                  }}
+                ></Typography>
+                {item.tier}
+              </Typography>
+            </Box>
           </Box>
         </CardContent>
       </CardActionArea>
