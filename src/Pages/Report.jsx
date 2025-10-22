@@ -529,7 +529,10 @@ function Report() {
           open={openDialog}
           onClose={() => setOpenDialog(false)}
           report={selectedReport}
-          onRespond={(report) => console.log("Respond to report:", report)}
+          onRespond={() => {
+            handleRespond()
+            setOpenDialog(false);
+          }}
         />
       </Box>
     </Fade>

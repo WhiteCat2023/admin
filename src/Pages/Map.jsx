@@ -15,6 +15,10 @@ import {
   TextField,
   InputAdornment,
   CardActionArea,
+  Button,
+  Menu,
+  MenuItem,
+  IconButton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { format } from "date-fns";
@@ -22,6 +26,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { getAllReports } from "../utils/controller/report.controller";
 import { HttpStatus } from "../utils/enums/status";
 import { getTierColor } from "../utils/helpers";
+import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBXEUzzVkNk1BpBESFqbftnG6Om66vNPY0";
 const GOOGLE_MAPS_ID = "b183e79aec18c6128664e1b8";
@@ -32,6 +37,14 @@ function Map() {
   const [searchText, setSearchText] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const mapRef = useRef(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   useEffect(() => {
     fetchData();
@@ -168,119 +181,7 @@ function Map() {
       ),
     [reports, searchText]
   );
-  return (
-    <Fade in={showContent} timeout={600}>
-      <Box sx={{ flexGrow: 1, p: 3 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-            MAP
-          </Typography>
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start" sx={{ borderRadius: 4 }}>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              width: 300,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "15px",
-                "&.Mui-focused fieldset": {
-                  borderColor: "#2ED573",
-                },
-                "&:hover fieldset": {
-                  borderColor: "#2ED573",
-                },
-              },
-            }}
-          />
-        </Box>
 
-        <Box
-          sx={{
-            borderRadius: 2,
-            overflow: "hidden",
-            display: "flex",
-            height: "80vh",
-          }}
-        >
-          {/* Left side list */}
-          <Box sx={{ width: "40%", p: 2, overflowY: "auto" }}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-              OVERSEE
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              List of places needed action
-            </Typography>
-
-            {filteredReports.length === 0 ? (
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{ textAlign: "center", py: 4 }}
-              >
-                No reports available
-              </Typography>
-            ) : (
-              filteredReports.map((item) => {
-                const formattedDate = item.timestamp?.toDate
-                  ? format(item.timestamp.toDate(), "hh:mma - MMM d")
-                  : "";
-
-                return renderListItem(item);
-              })
-            )}
-          </Box>
-
-          {/* Right side map */}
-          <Box sx={{ flex: 1, position: "relative" }}>
-            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-              <GoogleMap
-                defaultZoom={16}
-                defaultCenter={{ lat: 10.309, lng: 123.893 }}
-                options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID }}
-                style={{ width: "100%", height: "100%" }}
-                onLoad={onLoad}
-                fullscreenControl={true}
-              >
-                {selectedItem
-                  ? null
-                  : reports.map((item) =>
-                      item.location &&
-                      item.location.length >= 2 &&
-                      !isNaN(parseFloat(item.location[1])) &&
-                      !isNaN(parseFloat(item.location[0])) ? (
-                        <AdvancedMarker
-                          key={item.id}
-                          position={{
-                            lat: parseFloat(item.location[1]),
-                            lng: parseFloat(item.location[0]),
-                          }}
-                        />
-                      ) : null
-                    )}
-                <Direction selectedItem={selectedItem} />
-              </GoogleMap>
-            </APIProvider>
-          </Box>
-        </Box>
-      </Box>
-    </Fade>
-  );
   function Direction({ selectedItem }) {
     const map = useMap();
     const routesLibrary = useMapsLibrary("routes");
@@ -407,6 +308,173 @@ function Map() {
       </Box>
     );
   }
+  
+  return (
+    <Fade in={showContent} timeout={600}>
+      <Box sx={{ flexGrow: 1, p: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography
+            variant="h3"
+            sx={{ fontWeight: "bold", fontFamily: '"Poppins", sans-serif' }}
+          >
+            MAP
+          </Typography>
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start" sx={{ borderRadius: 4 }}>
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              width: 300,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "15px",
+                "&.Mui-focused fieldset": {
+                  borderColor: "#2ED573",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#2ED573",
+                },
+              },
+            }}
+          />
+        </Box>
+
+        <Box
+          sx={{
+            borderRadius: 2,
+            overflow: "hidden",
+            display: "flex",
+            height: "80vh",
+          }}
+        >
+          {/* Left side list */}
+          <Box sx={{ width: "40%", p: 2, overflowY: "auto" }}>
+            <Box
+              sx={{
+                display: "flex",
+              }}
+            >
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+                  OVERSEE
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  List of places needed action
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <IconButton
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mt: 1,
+                  }}
+                  aria-controls={open ? "basic-menu" : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? "true" : undefined}
+                  onClick={handleClick}
+                >
+                  <FilterListAltIcon sx={{ color: "#2ED573" }} />
+                </IconButton>
+                <Menu
+                  id="basic-menu"
+                  anchorEl={anchorEl}
+                  open={open}
+                  onClose={handleClose}
+                  slotProps={{
+                    list: {
+                      "aria-labelledby": "basic-button",
+                    },
+                  }}
+                  transformOrigin={{ horizontal: "right", vertical: "top" }}
+                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                >
+                  <MenuItem onClick={handleClose}>All</MenuItem>
+                  <MenuItem onClick={handleClose}>Responded</MenuItem>
+                  <MenuItem onClick={handleClose}>Ignored</MenuItem>
+                </Menu>
+              </Box>
+            </Box>
+
+            {filteredReports.length === 0 ? (
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ textAlign: "center", py: 4 }}
+              >
+                No reports available
+              </Typography>
+            ) : (
+              filteredReports.map((item) => {
+                const formattedDate = item.timestamp?.toDate
+                  ? format(item.timestamp.toDate(), "hh:mma - MMM d")
+                  : "";
+
+                return renderListItem(item);
+              })
+            )}
+          </Box>
+
+          {/* Right side map */}
+          <Box sx={{ flex: 1, position: "relative" }}>
+            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+              <GoogleMap
+                defaultZoom={16}
+                defaultCenter={{ lat: 10.309, lng: 123.893 }}
+                options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID }}
+                style={{ width: "100%", height: "100%" }}
+                onLoad={onLoad}
+                fullscreenControl={true}
+              >
+                {selectedItem
+                  ? null
+                  : reports.map((item) =>
+                      item.location &&
+                      item.location.length >= 2 &&
+                      !isNaN(parseFloat(item.location[1])) &&
+                      !isNaN(parseFloat(item.location[0])) ? (
+                        <AdvancedMarker
+                          key={item.id}
+                          position={{
+                            lat: parseFloat(item.location[1]),
+                            lng: parseFloat(item.location[0]),
+                          }}
+                        />
+                      ) : null
+                    )}
+                <Direction selectedItem={selectedItem} />
+              </GoogleMap>
+            </APIProvider>
+          </Box>
+        </Box>
+      </Box>
+    </Fade>
+  );
 }
 
 export default Map;

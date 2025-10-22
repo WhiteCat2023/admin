@@ -7,14 +7,29 @@ import DashboardLayout from "./utils/Layout/DashboardLayout";
 import Dashboard from "./Pages/Dashboard";
 import Map from "./Pages/Map";
 import Report from "./Pages/Report";
-import Forum from "./Pages/Forum";
+import Forum from "./Pages/Forum/Forum.jsx";
 import PublicRoute from "./utils/PublicRoute/PublicRoute";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Profile from "./Pages/Profile.jsx";
-import ForumPost from "./Pages/ForumPost.jsx";
+import ForumPost from "./Pages/Forum/ForumPost.jsx";
 import AdminUser from "./Pages/AdminUser.jsx";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "./utils/theme/theme.js";
+import { useEffect } from "react";
 
 function App() {
+  useEffect(() => {
+    const id = "poppins-font-stylesheet";
+    if (!document.getElementById(id)) {
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap";
+      document.head.appendChild(link);
+    }
+  }, []);
+
   const router = createBrowserRouter([
     {
       path: "/login",
@@ -64,9 +79,11 @@ function App() {
   ]);
 
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <ThemeProvider theme={theme}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

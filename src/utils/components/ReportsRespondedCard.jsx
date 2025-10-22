@@ -1,16 +1,16 @@
 import { Card, CardContent, Typography, Box } from "@mui/material";
-import InsertChartIcon from "@mui/icons-material/InsertChart";
+import GraphIcon from "../../assets/GraphIcon.png";
 
 function ReportsRespondedCard({ respondedReportsLength, onClick }) {
   return (
     <Card
-      elevation={2}
+      elevation={0}
       sx={{
         p: 1,
         flexGrow: 1,
         borderRadius: 4,
         cursor: "pointer",
-        boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+        // boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
       }}
       onClick={onClick}
     >
@@ -30,7 +30,12 @@ function ReportsRespondedCard({ respondedReportsLength, onClick }) {
           </Typography>
         </Box>
 
-        <InsertChartIcon sx={{ fontSize: 40, color: "green" }} />
+        <Box
+          component="img"
+          src={GraphIcon}
+          alt="graph"
+          sx={{ width: 70, height: 50 }}
+        />
       </CardContent>
     </Card>
   );

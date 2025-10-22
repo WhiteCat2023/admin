@@ -4,11 +4,11 @@ import ReportListItem from "./ReportListItem";
 function HistoryCard({ latestRepondedReport, onItemClick }) {
   return (
     <Card
-      elevation={2}
+      elevation={0}
       sx={{
         flexGrow: 1,
         borderRadius: 4,
-        boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+        // boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
       }}
     >
       <CardContent>
@@ -26,9 +26,9 @@ function HistoryCard({ latestRepondedReport, onItemClick }) {
             onClick={() => {}}
           />
         )}
-        <Button size="small" sx={{ mt: 1 }}>
+        {/* <Button size="small" sx={{ mt: 1 }}>
           View all Tasks
-        </Button>
+        </Button> */}
       </CardContent>
     </Card>
   );

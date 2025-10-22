@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { db } from '../utils/config/firebase'
-import { doc, getDoc, collection, onSnapshot, addDoc, deleteDoc, serverTimestamp, increment, updateDoc } from 'firebase/firestore'
+import { useAuth } from '../../context/AuthContext'
+import { db } from '../../utils/config/firebase'
+import { doc, getDoc, collection, onSnapshot, addDoc, deleteDoc, serverTimestamp, increment, updateDoc, setDoc } from 'firebase/firestore'
 import { Box, Typography, Button, Card, CardContent, TextField, Stack, Avatar, IconButton, Paper, Container, Fade, Divider, Menu, MenuItem } from '@mui/material'
-import { ArrowBack, Delete, Send, MoreVert } from '@mui/icons-material'
-import { formatTimeAgo, getInitials } from '../utils/helpers'
+import { ArrowBack, Delete, Send, MoreVert, ThumbUp, ThumbUpOffAlt } from '@mui/icons-material'
+import { formatTimeAgo, getInitials } from '../../utils/helpers'
 
 function ForumPost() {
   const { id } = useParams()
@@ -19,6 +19,15 @@ function ForumPost() {
   const [postMenuAnchor, setPostMenuAnchor] = useState(null)
   const [commentMenuAnchor, setCommentMenuAnchor] = useState(null)
   const [selectedCommentId, setSelectedCommentId] = useState(null)
+
+  // new state for replies
+  const [repliesMap, setRepliesMap] = useState({}) // { commentId: { top: [...], children: { parentReplyId: [...] } } }
+  // replyTarget tracks where we're replying: { commentId, parentReplyId|null }
+  const [replyTarget, setReplyTarget] = useState(null)
+  const [replyText, setReplyText] = useState("")
+
+  // new state for likes
+  const [likedComments, setLikedComments] = useState({}) // { commentId: true/false }
 
   useEffect(() => {
     setShowContent(true)
@@ -59,6 +68,74 @@ function ForumPost() {
     return () => unsubscribe()
   }, [id])
 
+  // --- NEW: realtime replies listeners per comment ---
+  useEffect(() => {
+    if (!id) return;
+
+    if (comments.length === 0) {
+      // no comments -> clear replies
+      setRepliesMap({});
+      return;
+    }
+
+    const unsubscribes = [];
+    // build listeners for each comment
+    comments.forEach((c) => {
+      const repliesRef = collection(db, "forums", id, "comments", c.id, "replies");
+      const unsub = onSnapshot(repliesRef, (snap) => {
+        const fetched = snap.docs
+          .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+          .sort((a, b) => {
+            const ta = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : 0;
+            const tb = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : 0;
+            return ta - tb;
+          });
+
+        // build top-level replies and children map (group by parentReplyId)
+        const top = fetched.filter((r) => !r.parentReplyId);
+        const children = fetched.reduce((acc, r) => {
+          if (r.parentReplyId) {
+            acc[r.parentReplyId] = acc[r.parentReplyId] || [];
+            acc[r.parentReplyId].push(r);
+          }
+          return acc;
+        }, {});
+        setRepliesMap((prev) => ({ ...prev, [c.id]: { top, children } }));
+      });
+
+      unsubscribes.push(unsub);
+    });
+
+    // cleanup: call all unsubscribe functions
+    return () => {
+      unsubscribes.forEach((u) => {
+        try { u(); } catch (err) { /* ignore */ }
+      });
+    };
+  }, [id, comments])
+
+  // when comments change, check whether current user liked each comment
+  useEffect(() => {
+    if (!user || !id || comments.length === 0) {
+      // clear likes when no user or no comments
+      setLikedComments({});
+      return;
+    }
+
+    // parallel checks for each comment's like doc (user-specific)
+    const checks = comments.map((c) =>
+      getDoc(doc(db, "forums", id, "comments", c.id, "likes", user.uid))
+        .then((snap) => ({ id: c.id, liked: snap.exists() }))
+        .catch(() => ({ id: c.id, liked: false }))
+    );
+
+    Promise.all(checks).then((results) => {
+      const map = {};
+      results.forEach((r) => { map[r.id] = r.liked; });
+      setLikedComments(map);
+    });
+  }, [comments, user, id]);
+
   const addComment = async () => {
     if (!newComment.trim() || !user) return
 
@@ -90,6 +167,55 @@ function ForumPost() {
       console.error("Error deleting comment:", error)
     }
   }
+
+  // NEW: add a reply to a specific comment (optional parentReplyId)
+  const addReply = async (commentId, parentReplyId = null) => {
+    if (!replyText.trim() || !user) return
+    try {
+      await addDoc(collection(db, "forums", id, "comments", commentId, "replies"), {
+        text: replyText,
+        parentReplyId: parentReplyId || null,
+        authorName: `${userDoc?.firstName} ${userDoc?.lastName}`,
+        authorFirstName: userDoc?.firstName,
+        authorPhoto: userDoc?.profilePic,
+        authorId: user?.uid,
+        timestamp: serverTimestamp(),
+      })
+      // optional: increment reply counter on the parent comment
+      await updateDoc(doc(db, "forums", id, "comments", commentId), {
+        repliesCount: increment(1),
+      })
+      setReplyText("")
+      setReplyTarget(null)
+    } catch (error) {
+      console.error("Error adding reply:", error)
+    }
+  }
+
+  const toggleLike = async (commentId) => {
+    if (!user) return;
+    try {
+      const likeRef = doc(db, "forums", id, "comments", commentId, "likes", user.uid);
+      const commentRef = doc(db, "forums", id, "comments", commentId);
+      const likeSnap = await getDoc(likeRef);
+
+      if (likeSnap.exists()) {
+        // unlike
+        await deleteDoc(likeRef);
+        await updateDoc(commentRef, { likesCount: increment(-1) });
+        setLikedComments((prev) => ({ ...prev, [commentId]: false }));
+        setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, likesCount: (c.likesCount || 0) - 1 } : c));
+      } else {
+        // like
+        await setDoc(likeRef, { uid: user.uid, timestamp: serverTimestamp() });
+        await updateDoc(commentRef, { likesCount: increment(1) });
+        setLikedComments((prev) => ({ ...prev, [commentId]: true }));
+        setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, likesCount: (c.likesCount || 0) + 1 } : c));
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    }
+  };
 
   const handlePostMenuOpen = (e) => {
     e.stopPropagation()
@@ -459,20 +585,187 @@ function ForumPost() {
                         >
                           {comment.text}
                         </Typography>
+
+                        {/* --- NEW: Replies list (top-level + nested children) --- */}
+                        {repliesMap[comment.id] && repliesMap[comment.id].top && repliesMap[comment.id].top.length > 0 && (
+                          <Box sx={{ mt: 2, pl: 6 }}>
+                            {repliesMap[comment.id].top.map((reply) => {
+                              const replyTimestamp = reply.timestamp?.toDate ? reply.timestamp.toDate() : new Date()
+                              const children = (repliesMap[comment.id].children || {})[reply.id] || []
+                              return (
+                                <Box key={reply.id} sx={{ mb: 1 }}>
+                                  <Card
+                                    sx={{
+                                      p: 1.25,
+                                      borderRadius: "6px",
+                                      border: "1px solid #f0f0f0",
+                                      bgcolor: "#fafafa",
+                                    }}
+                                    elevation={0}
+                                  >
+                                    <Box sx={{ display: "flex", gap: 1 }}>
+                                      <Avatar
+                                        src={reply.authorPhoto}
+                                        alt={reply.authorName}
+                                        sx={{ width: 32, height: 32, bgcolor: "#2ED573" }}
+                                      >
+                                        {getInitials(reply.authorFirstName)}
+                                      </Avatar>
+                                      <Box sx={{ flex: 1 }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                          {reply.authorName}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: "#999" }}>
+                                          {formatTimeAgo(replyTimestamp)}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ mt: 0.5 }}>
+                                          {reply.text}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </Card>
+
+                                  {/* nested children replies */}
+                                  {children.length > 0 && (
+                                    <Box sx={{ pl: 6, mt: 1 }}>
+                                      {children.map((child) => {
+                                        const childTimestamp = child.timestamp?.toDate ? child.timestamp.toDate() : new Date()
+                                        return (
+                                          <Card key={child.id} sx={{ p: 1, mb: 1, borderRadius: "6px", border: "1px solid #f5f5f5", bgcolor: "#fff" }} elevation={0}>
+                                            <Box sx={{ display: "flex", gap: 1 }}>
+                                              <Avatar src={child.authorPhoto} alt={child.authorName} sx={{ width: 28, height: 28, bgcolor: "#2ED573" }}>
+                                                {getInitials(child.authorFirstName)}
+                                              </Avatar>
+                                              <Box sx={{ flex: 1 }}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{child.authorName}</Typography>
+                                                <Typography variant="caption" sx={{ color: "#999" }}>{formatTimeAgo(childTimestamp)}</Typography>
+                                                <Typography variant="body2" sx={{ mt: 0.5 }}>{child.text}</Typography>
+                                              </Box>
+                                            </Box>
+                                          </Card>
+                                        )
+                                      })}
+                                    </Box>
+                                  )}
+
+                                  {/* Reply action on top-level reply */}
+                                  <Box sx={{ pl: 6, mt: 1, display: "flex", gap: 1 }}>
+                                    <Button
+                                      size="small"
+                                      onClick={() => {
+                                        setReplyTarget({ commentId: comment.id, parentReplyId: reply.id })
+                                        setReplyText("")
+                                      }}
+                                      sx={{ textTransform: "none", color: "#2ED573", fontWeight: 600 }}
+                                    >
+                                      Reply
+                                    </Button>
+                                  </Box>
+                                </Box>
+                              )
+                            })}
+                          </Box>
+                        )}
+
+                        {/* actions row: reply to comment and like */}
+                        <Box sx={{ display: "flex", gap: 1, mt: 1, alignItems: "center" }}>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              setReplyTarget((prev) => (prev && prev.commentId === comment.id && !prev.parentReplyId ? null : { commentId: comment.id, parentReplyId: null }))
+                              setReplyText("")
+                            }}
+                            sx={{
+                              textTransform: "none",
+                              color: "#2ED573",
+                              fontWeight: 600,
+                              "&:hover": { bgcolor: "transparent" },
+                            }}
+                          >
+                            Reply
+                          </Button>
+
+                          {/* NEW: Like button */}
+                          <Button
+                            size="small"
+                            onClick={() => toggleLike(comment.id)}
+                            startIcon={ likedComments[comment.id] ? <ThumbUp fontSize="small" /> : <ThumbUpOffAlt fontSize="small" /> }
+                            sx={{
+                              textTransform: "none",
+                              color: likedComments[comment.id] ? "#2ED573" : "#999",
+                              fontWeight: 600,
+                              "&:hover": { bgcolor: "transparent" },
+                            }}
+                          >
+                            {comment.likesCount || 0}
+                          </Button>
+                        </Box>
+ 
+                        {/* inline reply editor for comment-level or reply-level targets */}
+                        {replyTarget && replyTarget.commentId === comment.id && (
+                          <Box sx={{ mt: 1, pl: 0 }}>
+                            <TextField
+                              fullWidth
+                              placeholder={replyTarget.parentReplyId ? "Write a reply to reply..." : "Write a reply..."}
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              multiline
+                              rows={2}
+                              sx={{
+                                mb: 1,
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: "6px",
+                                  "& fieldset": { borderColor: "#e0e0e0" },
+                                  "&.Mui-focused fieldset": {
+                                    borderColor: "#2ED573",
+                                    borderWidth: "2px",
+                                  },
+                                },
+                              }}
+                            />
+                            <Box sx={{ display: "flex", gap: 1 }}>
+                              <Button
+                                variant="contained"
+                                endIcon={<Send />}
+                                onClick={() => addReply(comment.id, replyTarget.parentReplyId)}
+                                disabled={!replyText.trim()}
+                                sx={{
+                                  backgroundColor: "#2ED573",
+                                  color: "#fff",
+                                  fontWeight: 600,
+                                  textTransform: "none",
+                                  borderRadius: "6px",
+                                  "&:hover": { backgroundColor: "#26c061" },
+                                  "&:disabled": { bgcolor: "#ddd", color: "#999" },
+                                }}
+                              >
+                                Post Reply
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                onClick={() => { setReplyTarget(null); setReplyText("") }}
+                                sx={{ textTransform: "none" }}
+                              >
+                                Cancel
+                              </Button>
+                            </Box>
+                          </Box>
+                        )}
+ 
                       </Box>
                     </Box>
                   </Card>
-                );
-              })
-            ) : (
-              <Typography
-                variant="body2"
-                sx={{ color: "#999", textAlign: "center", py: 2 }}
-              >
-                No comments yet. Be the first to comment!
-              </Typography>
-            )}
-          </Stack>
+                   );
+                 })
+               ) : (
+                 <Typography
+                   variant="body2"
+                   sx={{ color: "#999", textAlign: "center", py: 2 }}
+                 >
+                   No comments yet. Be the first to comment!
+                 </Typography>
+               )}
+             </Stack>
         </Paper>
       </Box>
     </Fade>

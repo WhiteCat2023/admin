@@ -3,12 +3,12 @@ import { Card, CardContent, Typography, Box, Button } from "@mui/material";
 function LatestReportCard({ latestReport, shiningEffectStyles, onRespond }) {
   return (
     <Card
-      elevation={2}
+      elevation={0}
       sx={{
         p: 1,
         flexGrow: 1,
         borderRadius: 4,
-        boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+        // boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
       }}
     >
       <CardContent sx={{ display: "flex", gap: 2 }}>
@@ -23,7 +23,15 @@ function LatestReportCard({ latestReport, shiningEffectStyles, onRespond }) {
           }}
         >
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{
+                fontWeight: 600,
+                fontSize: 40,
+                fontFamily: '"Poppins", sans-serif',
+              }}
+            >
               LATEST REPORT
             </Typography>
             <Typography
@@ -42,8 +50,10 @@ function LatestReportCard({ latestReport, shiningEffectStyles, onRespond }) {
             sx={{
               mt: 2,
               backgroundColor: "#2ED573",
-              px: 7,
+              px: 9,
+              py: 1.5,
               fontWeight: 600,
+              borderRadius: 50,
             }}
             onClick={onRespond}
           >
@@ -54,8 +64,9 @@ function LatestReportCard({ latestReport, shiningEffectStyles, onRespond }) {
           <Box
             sx={{
               flex: 1,
-              minHeight: 200,
+              minHeight: 300,
               width: "50%",
+              minWidth: 500,
               borderRadius: 2,
               overflow: "hidden",
               backgroundImage: `url(${latestReport.images[0]})`,

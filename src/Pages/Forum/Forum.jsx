@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { db } from "../utils/config/firebase";
+import { db } from "../../utils/config/firebase";
 import {
   collection,
   onSnapshot,
@@ -45,7 +45,7 @@ import {
   Search as SearchIcon,
   MoreVert,
 } from "@mui/icons-material";
-import { getInitials, formatTimeAgo } from "../utils/helpers";
+import { getInitials, formatTimeAgo } from "../../utils/helpers";
 
 function Forum() {
   const { user, userDoc } = useAuth();
@@ -93,14 +93,6 @@ function Forum() {
     };
     if (user) loadCachedLikes();
   }, [user]);
-
-  const saveLikesToCache = async (likes) => {
-    try {
-      localStorage.setItem(`userLikes_${user?.uid}`, JSON.stringify(likes));
-    } catch (e) {
-      console.error("Error saving likes:", e);
-    }
-  };
 
   // Realtime discussions
   useEffect(() => {
@@ -163,6 +155,14 @@ function Forum() {
 
     setFilteredDiscussions(computeFiltered());
   }, [discussions, searchQuery, filter, sortOrder]);
+
+  const saveLikesToCache = async (likes) => {
+    try {
+      localStorage.setItem(`userLikes_${user?.uid}`, JSON.stringify(likes));
+    } catch (e) {
+      console.error("Error saving likes:", e);
+    }
+  };
 
   // Save discussion (new or edit)
   const saveDiscussion = async () => {

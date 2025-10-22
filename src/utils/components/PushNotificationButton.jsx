@@ -132,8 +132,8 @@ const PushNotificationButton = ({
         aria-describedby={id}
         onClick={handleClick}
         sx={{
-          color: unreadCount > 0 ? "#2ED573" : "#666",
-          backgroundColor: unreadCount > 0 ? "#d1fae2ff" : "#f5f5f5",
+          color: unreadCount > 0 ? "#499468ff" : "#666",
+          backgroundColor: unreadCount > 0 ? "#bde4cdff" : "#f5f5f5",
         }}
         title="View notifications"
       >

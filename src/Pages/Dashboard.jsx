@@ -38,11 +38,26 @@ function Dashboard() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [reportNotifs, setReportNotifs] = useState([]);
-  const { user, loading: authLoading, userDoc } = useAuth();
+  const { userDoc } = useAuth();
   const navigate = useNavigate()
   useEffect(() => {
     fetchData();
   }, []); 
+
+  // Load Poppins font from Google Fonts
+  useEffect(() => {
+    const id = "poppins-font-stylesheet";
+    if (!document.getElementById(id)) {
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap";
+      document.head.appendChild(link);
+      return () => {
+        try { document.head.removeChild(link); } catch (e) { /* ignore */ }
+      };
+    }
+  }, []);
 
   useEffect(() => {
     // Simulate notifications from reports (new/pending as unread)
@@ -244,10 +259,17 @@ function Dashboard() {
             }}
           >
             <Box>
-              <Typography variant="h6" color="text.secondary">
+              <Typography
+                variant="h6"
+                color="text.secondary"
+                sx={{  }}
+              >
                 Greetings! Welcome Back
               </Typography>
-              <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold",  }}
+              >
                 ADMIN
               </Typography>
             </Box>
@@ -262,10 +284,12 @@ function Dashboard() {
                 setSnackbarOpen={setSnackbarOpen}
               />
 
-              <Card
+              {/* <Card
+              elevation="0"
                 sx={{
                   borderRadius: 4,
-                  boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+                  // boxShadow: "0px 2px 4px rgba(167, 166, 166, 0.5)",
+                  
                 }}
               >
                 <CardActionArea sx={{ px: 2, py: 1.5, borderRadius: 4 }}>
@@ -303,7 +327,7 @@ function Dashboard() {
                     </Box>
                   </Box>
                 </CardActionArea>
-              </Card>
+              </Card> */}
             </Box>
           </Box>
 

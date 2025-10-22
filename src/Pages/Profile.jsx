@@ -119,10 +119,10 @@ function Profile() {
   };
 
   return (
-    <Fade in={showContent} timeout={600}>
-      <Box sx={{ flexGrow: 1 }}>
+    <Fade in={showContent} timeout={600} >
+      <Box sx={{ flexGrow: 1, minHeight: "100vh" }}>
         {/* Profile Header */}
-        <Box
+        {/* <Box
           sx={{
             position: "relative",
             height: 200,
@@ -163,7 +163,7 @@ function Profile() {
               <EditIcon />
             </IconButton>
           </Box>
-        </Box>
+        </Box> */}
 
         <Box sx={{ p: 3, mx: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>

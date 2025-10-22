@@ -14,6 +14,7 @@ import {
   useTheme,
   useMediaQuery,
   Button,
+  ThemeProvider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -27,6 +28,8 @@ import { auth } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import theme from "../theme/theme";
+
 
 function DashboardLayout({ children }) {
   const location = useLocation();
@@ -88,32 +91,42 @@ function DashboardLayout({ children }) {
         flexDirection: "column",
         justifyContent: "space-between", // 👈 push logout to bottom
         height: "100%",
-        textAlign: "center",
+        // textAlign: "center",
         border: "1px solid #ddd",
-        // m: 2,
+        //  m: 2,
         pt: 4,
+        p: 3,
         borderRadius: 3,
         // boxShadow: 3,
-        border: isDesktop ? "none" : "1px solid #ddd",
+        // border: isDesktop ? "none" : "1px solid #ddd",
+        backgroundColor: "#fff",
       }}
     >
       {/* Top content */}
       <Box>
         <Box
           sx={{
-            flex: 1,
+            // flex: 1,
             display: { xs: "none", md: "flex" },
-            borderRadius: 4,
+            // borderRadius: 4,
             overflow: "hidden",
-            height: 60,
+            width: 90,
+            height: 40,
             backgroundImage: `url(${Ariba})`,
             backgroundSize: "contain",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
           }}
         />
-        <Typography variant="h6" sx={{ my: 2 }}>
-          My Dashboard
+        <Typography
+          variant="body1"
+          sx={{
+            mb: 2,
+            fontWeight: "bold",
+            fontSize: 14,
+          }}
+        >
+          Report your concerns
         </Typography>
         <List sx={{ textAlign: "left" }}>
           {routes.map(({ text, path, icon }, index) => (
@@ -128,7 +141,8 @@ function DashboardLayout({ children }) {
                   textAlign: "left",
                   display: "flex",
                   justifyContent: "flex-start",
-                  p: 2,
+                  px: 2,
+                  py: 1.5,
                   borderRadius: 1,
                   m: 1,
                   backgroundColor:
@@ -148,7 +162,10 @@ function DashboardLayout({ children }) {
                   }}
                 >
                   {icon}
-                  <Typography variant="body1" sx={{ ml: 1 }}>
+                  <Typography
+                    variant="body1"
+                    sx={{ ml: 1}}
+                  >
                     {text}
                   </Typography>
                 </Box>
@@ -166,6 +183,7 @@ function DashboardLayout({ children }) {
           color="#c2c2c2ff"
           onClick={handleLogout}
           sx={{
+            fontFamily: '"Poppins", sans-serif',
             borderRadius: 2,
             py: 1.5,
             borderColor: "#2ED573", // custom outline color
@@ -183,72 +201,80 @@ function DashboardLayout({ children }) {
   );
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-      {/* Top AppBar */}
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
-          background: "#2ED573",
-          boxShadow: "none",
-        }}
-      >
-        <Toolbar
+      <Box sx={{ display: "flex" }}>
+        <CssBaseline />
+        {/* Top AppBar */}
+        <AppBar
+          position="fixed"
           sx={{
-            display: isDesktop ? "none" : "flex",
+            width: { md: `calc(100% - ${drawerWidth}px)` },
+            ml: { md: `${drawerWidth}px` },
+            background: "#2ED573",
+            boxShadow: "none",
           }}
         >
-          {!isDesktop && (
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
+          <Toolbar
+            sx={{
+              display: isDesktop ? "none" : "flex",
+            }}
+          >
+            {!isDesktop && (
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+            <Typography
+              variant="h6"
+              sx={{ fontFamily: '"Poppins", sans-serif' }}
             >
-              <MenuIcon />
-            </IconButton>
-          )}
-          <Typography variant="h6">Dashboard</Typography>
-        </Toolbar>
-      </AppBar>
+              Dashboard
+            </Typography>
+          </Toolbar>
+        </AppBar>
 
-      {/* Sidebar */}
-      <Drawer
-        variant={isDesktop ? "permanent" : "temporary"}
-        open={isDesktop ? true : mobileOpen}
-        onClose={handleDrawerToggle}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            height: "100vh", // full height
-            boxSizing: "border-box",
-            position: isDesktop ? "fixed" : "absolute", // 👈 fixed sidebar on desktop
-            top: 0,
-            left: 0,
-          },
-        }}
-      >
-        {drawer}
-      </Drawer>
-      {/* Slot for content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: isDesktop ? 3 : 2,
-          mt: isDesktop ? 0 : 7,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          // height: "100vh",
-          ml: { md: `${drawerWidth}px` }, // 👈 shift content to the right of sidebar
-          backgroundColor: "#f4fff6ff",
-        }}
-      >
-        <Outlet />
+        {/* Sidebar */}
+        <Drawer
+          variant={isDesktop ? "permanent" : "temporary"}
+          open={isDesktop ? true : mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            "& .MuiDrawer-paper": {
+              width: drawerWidth,
+              height: "100vh", // full height
+              boxSizing: "border-box",
+              position: isDesktop ? "fixed" : "absolute", // 👈 fixed sidebar on desktop
+              top: 0,
+              left: 0,
+              p: 2,
+              backgroundColor: "#D9E9DD",
+              borderRight: "none",
+            },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        {/* Slot for content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: isDesktop ? 3 : 2,
+            mt: isDesktop ? 0 : 7,
+            width: { md: `calc(100% - ${drawerWidth}px)` },
+            // height: "100vh",
+            ml: { md: `${drawerWidth}px` }, // 👈 shift content to the right of sidebar
+            backgroundColor: "#D9E9DD", //#f4fff6ff",
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
-    </Box>
   );
 }
 
