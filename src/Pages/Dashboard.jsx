@@ -260,15 +260,15 @@ function Dashboard() {
           >
             <Box>
               <Typography
-                variant="h6"
+                variant="body1"
                 color="text.secondary"
-                sx={{  }}
+                sx={{ fontSize: 22 }}
               >
                 Greetings! Welcome Back
               </Typography>
               <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold",  }}
+                variant="h2"
+                sx={{ fontWeight: "bold", fontSize: 70 }}
               >
                 ADMIN
               </Typography>

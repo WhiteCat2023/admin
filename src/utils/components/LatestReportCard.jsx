@@ -49,7 +49,7 @@ function LatestReportCard({ latestReport, shiningEffectStyles, onRespond }) {
             variant="contained"
             sx={{
               mt: 2,
-              backgroundColor: "#2ED573",
+              backgroundColor: "#34A853",
               px: 9,
               py: 1.5,
               fontWeight: 600,

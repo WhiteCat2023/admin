@@ -146,11 +146,11 @@ function DashboardLayout({ children }) {
                   borderRadius: 1,
                   m: 1,
                   backgroundColor:
-                    selectedIndex === index ? "#2ED573" : "transparent",
+                    selectedIndex === index ? "#34A853" : "transparent",
                   color: selectedIndex === index ? "white" : "#8a8a8aff",
                   "&:hover": {
                     backgroundColor:
-                      selectedIndex === index ? "#2ED573" : "rgba(0,0,0,0.1)",
+                      selectedIndex === index ? "#34A853" : "rgba(0,0,0,0.1)",
                   },
                 }}
               >
@@ -162,10 +162,7 @@ function DashboardLayout({ children }) {
                   }}
                 >
                   {icon}
-                  <Typography
-                    variant="body1"
-                    sx={{ ml: 1}}
-                  >
+                  <Typography variant="body1" sx={{ ml: 1 }}>
                     {text}
                   </Typography>
                 </Box>
@@ -186,8 +183,8 @@ function DashboardLayout({ children }) {
             fontFamily: '"Poppins", sans-serif',
             borderRadius: 2,
             py: 1.5,
-            borderColor: "#2ED573", // custom outline color
-            color: "#2ED573", // text color
+            borderColor: "#34A853", // custom outline color
+            color: "#34A853", // text color
             "&:hover": {
               borderColor: "#23a559ff", // darker outline on hover
               backgroundColor: "rgba(0,0,0,0.02)", // subtle hover effect
@@ -201,80 +198,77 @@ function DashboardLayout({ children }) {
   );
 
   return (
-      <Box sx={{ display: "flex" }}>
-        <CssBaseline />
-        {/* Top AppBar */}
-        <AppBar
-          position="fixed"
+    <Box sx={{ display: "flex" }}>
+      <CssBaseline />
+      {/* Top AppBar */}
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
+          background: "#34A853",
+          boxShadow: "none",
+        }}
+      >
+        <Toolbar
           sx={{
-            width: { md: `calc(100% - ${drawerWidth}px)` },
-            ml: { md: `${drawerWidth}px` },
-            background: "#2ED573",
-            boxShadow: "none",
+            display: isDesktop ? "none" : "flex",
           }}
         >
-          <Toolbar
-            sx={{
-              display: isDesktop ? "none" : "flex",
-            }}
-          >
-            {!isDesktop && (
-              <IconButton
-                color="inherit"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-            <Typography
-              variant="h6"
-              sx={{ fontFamily: '"Poppins", sans-serif' }}
+          {!isDesktop && (
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2 }}
             >
-              Dashboard
-            </Typography>
-          </Toolbar>
-        </AppBar>
+              <MenuIcon />
+            </IconButton>
+          )}
+          <Typography variant="h6" sx={{ fontFamily: '"Poppins", sans-serif' }}>
+            Dashboard
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-        {/* Sidebar */}
-        <Drawer
-          variant={isDesktop ? "permanent" : "temporary"}
-          open={isDesktop ? true : mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            "& .MuiDrawer-paper": {
-              width: drawerWidth,
-              height: "100vh", // full height
-              boxSizing: "border-box",
-              position: isDesktop ? "fixed" : "absolute", // 👈 fixed sidebar on desktop
-              top: 0,
-              left: 0,
-              p: 2,
-              backgroundColor: "#D9E9DD",
-              borderRight: "none",
-            },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        {/* Slot for content */}
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            p: isDesktop ? 3 : 2,
-            mt: isDesktop ? 0 : 7,
-            width: { md: `calc(100% - ${drawerWidth}px)` },
-            // height: "100vh",
-            ml: { md: `${drawerWidth}px` }, // 👈 shift content to the right of sidebar
-            backgroundColor: "#D9E9DD", //#f4fff6ff",
-          }}
-        >
-          <Outlet />
-        </Box>
+      {/* Sidebar */}
+      <Drawer
+        variant={isDesktop ? "permanent" : "temporary"}
+        open={isDesktop ? true : mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: drawerWidth,
+            height: "100vh", // full height
+            boxSizing: "border-box",
+            position: isDesktop ? "fixed" : "absolute", // 👈 fixed sidebar on desktop
+            top: 0,
+            left: 0,
+            p: 2,
+            backgroundColor: "#D9E9DD",
+            borderRight: "none",
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
+      {/* Slot for content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: isDesktop ? 3 : 2,
+          mt: isDesktop ? 0 : 7,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          // height: "100vh",
+          ml: { md: `${drawerWidth}px` }, // 👈 shift content to the right of sidebar
+          backgroundColor: "#D9E9DD", //#f4fff6ff",
+        }}
+      >
+        <Outlet />
       </Box>
+    </Box>
   );
 }
 
