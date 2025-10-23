@@ -44,6 +44,7 @@ import {
   Comment,
   Search as SearchIcon,
   MoreVert,
+  FilterList, // <-- added
 } from "@mui/icons-material";
 import { getInitials, formatTimeAgo } from "../../utils/helpers";
 
@@ -69,6 +70,47 @@ function Forum() {
   const [filteredDiscussions, setFilteredDiscussions] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedPostId, setSelectedPostId] = useState(null);
+
+  // Shared button styles for the new pill UI
+  const pillButton = {
+    borderRadius: "5px", // slightly larger pill radius like picture
+    textTransform: "none",
+    padding: "8px 16px", // comfortable padding
+    // border: "1px solid #084518",
+    color: "#084518",
+    backgroundColor: "transparent",
+    fontFamily: '"Poppins", sans-serif',
+    minHeight: 40,
+    "& .MuiButton-startIcon": {
+      // ensure icon matches text color
+      color: "inherit",
+    },
+    "&:hover": {
+      backgroundColor: "rgba(46,213,115,0.06)",
+    },
+  };
+
+  const pillButtonFilled = {
+    ...pillButton,
+    backgroundColor: "#34A853",
+    color: "#fff",
+    minWidth: 96,                      // make the filled pill slightly wider like picture
+    boxShadow: "none",
+    "&:hover": { backgroundColor: "#26c061" },
+  };
+
+  const pillIconButton = {
+    borderRadius: "6px", // small rounded square
+    border: "1px solid #084518",
+    color: "#084518",
+    padding: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: '"Poppins", sans-serif',
+    backgroundColor: "#fff",
+    "&:hover": { backgroundColor: "rgba(46,213,115,0.06)" },
+  };
 
   // Show content on mount
   useEffect(() => {
@@ -242,7 +284,8 @@ function Forum() {
     setSelectedPostId(null);
   };
 
-  const handleMenuDelete = async () => {
+  const handleMenuDelete = async (e) => {
+    e.stopPropagation()
     if (selectedPostId) {
       await deleteDiscussion(selectedPostId);
     }
@@ -265,14 +308,15 @@ function Forum() {
           sx={{
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "flex-start",
+            alignItems: "flex-end",
             mb: 3,
           }}
         >
           <Typography
-            variant="h3"
+            variant="h2"
             sx={{
               fontWeight: "bold",
+              fontFamily: '"Poppins", sans-serif',
             }}
           >
             Forum
@@ -291,276 +335,306 @@ function Forum() {
               ),
             }}
             sx={{
+              
               width: 300,
               "& .MuiOutlinedInput-root": {
+                backgroundColor: "#fff",
                 borderRadius: "15px",
                 "&.Mui-focused fieldset": {
-                  borderColor: "#2ED573",
+                  borderColor: "#084518",
                 },
                 "&:hover fieldset": {
-                  borderColor: "#2ED573",
+                  borderColor: "#084518",
                 },
               },
             }}
           />
         </Box>
-
-        {/* Filter and Sort Controls + New Discussion Button */}
         <Box
           sx={{
-            display: "flex",
-            gap: 2,
-            mb: 3,
-            alignItems: "center",
-            justifyContent: "flex-end",
+            backgroundColor: "#fff",
+            padding: 2,
+            borderRadius: 3,
           }}
         >
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => {
-              setEditingId(null);
-              setNewDiscussion({ title: "", description: "" });
-              setModalVisible(true);
-            }}
+          {/* Filter and Sort Controls + New Discussion Button */}
+          <Box
             sx={{
-              borderRadius: "8px",
-              backgroundColor: "#2ED573",
-              color: "#fff",
-              fontWeight: 600,
-              textTransform: "none",
-              "&:hover": { backgroundColor: "#26c061" },
+              display: "flex",
+              gap: 2,
+              mb: 3,
+              alignItems: "center",
+              justifyContent: "flex-end", // split left group and right filter button
             }}
           >
-            New Discussion
-          </Button>
-          <Button
-            startIcon={<Sort />}
-            onClick={() =>
-              setFilter(filter === "newest" ? "ongoing" : "newest")
-            }
-            variant={filter === "newest" ? "contained" : "outlined"}
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: filter === "newest" ? "#2ED573" : "transparent",
-              color: filter === "newest" ? "#fff" : "#2ED573",
-              borderColor: "#2ED573",
-              fontWeight: 500,
-              textTransform: "none",
-              "&:hover": {
-                backgroundColor:
-                  filter === "newest" ? "#26c061" : "rgba(46, 213, 115, 0.08)",
-              },
-            }}
-          >
-            {filter === "newest" ? "Newest" : "Ongoing"}
-          </Button>
-          <IconButton
-            onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-            sx={{
-              color: "#2ED573",
-              "&:hover": { bgcolor: "rgba(46, 213, 115, 0.08)" },
-            }}
-          >
-            <SortByAlpha
-              sx={{
-                transform: sortOrder === "asc" ? "rotate(180deg)" : "none",
-                transition: "transform 0.3s ease",
+            <Button
+              startIcon={<Add />}
+              onClick={() => {
+                setEditingId(null);
+                setNewDiscussion({ title: "", description: "" });
+                setModalVisible(true);
               }}
-            />
-          </IconButton>
-        </Box>
+              sx={{
+                borderRadius: "5px", // slightly larger pill radius like picture
+                textTransform: "none",
+                fontWeight: 600,
+                padding: "12px 16px", // comfortable padding
+                border: "1px solid #084518",
+                color: "#084518",
+                backgroundColor: "transparent",
+                fontFamily: '"Poppins", sans-serif',
+                minHeight: 40,
+                "& .MuiButton-startIcon": {
+                  // ensure icon matches text color
+                  color: "inherit",
+                },
+                "&:hover": {
+                  backgroundColor: "rgba(46,213,115,0.06)",
+                },
+              }}
+            >
+              Add Discussion
+            </Button>
+            <Box
+              sx={{
+                padding: 0.5,
+                display: "flex",
+                gap: 1,
+                border: "1px solid #084518",
+                borderRadius: "6px",
+              }}
+            >
+              <Button
+                onClick={() => setFilter("newest")}
+                sx={filter === "newest" ? pillButtonFilled : pillButton}
+              >
+                Newest
+              </Button>
 
-        {/* Discussions List */}
-        <Box sx={{ mb: 4 }}>
-          {filteredDiscussions.length > 0 ? (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {filteredDiscussions.map((discussion) => {
-                const timestamp = discussion.timestamp?.toDate
-                  ? discussion.timestamp.toDate()
-                  : new Date();
-                const isLiked = userLikes[discussion.id];
+              <Button
+                onClick={() => setFilter("ongoing")}
+                sx={filter === "ongoing" ? pillButtonFilled : pillButton}
+              >
+                Ongoing
+              </Button>
+            </Box>
 
-                return (
-                  <Card
-                    key={discussion.id}
-                    sx={{
-                      p: 2.5,
-                      cursor: "pointer",
-                      border: "1px solid #e0e0e0",
-                      borderRadius: "8px",
-                      width: "100%",
-                      bgcolor: "#fff",
-                      transition: "all 0.2s ease",
-                      "&:hover": {
-                        boxShadow: "0 4px 12px rgba(46, 213, 115, 0.1)",
-                        borderColor: "#2ED573",
-                      },
-                    }}
-                    onClick={() => navigate(`/forum/${discussion.id}`)}
-                    elevation={0}
-                  >
-                    <CardContent sx={{ p: 0 }}>
-                      <Box sx={{ display: "flex", gap: 2 }}>
-                        {/* Author Avatar */}
-                        <Avatar
-                          src={discussion.authorPhoto}
-                          alt={discussion.authorName}
-                          sx={{ width: 44, height: 44, bgcolor: "#2ED573" }}
-                        >
-                          {getInitials(discussion.authorFirstName)}
-                        </Avatar>
+            <IconButton
+              size="small"
+              onClick={() =>
+                setSortOrder(sortOrder === "desc" ? "asc" : "desc")
+              }
+              sx={pillIconButton}
+              aria-label="filter"
+            >
+              <FilterList />
+            </IconButton>
+          </Box>
 
-                        {/* Content */}
-                        <Box sx={{ flex: 1 }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "start",
-                              mb: 1,
-                            }}
+          {/* Discussions List */}
+          <Box sx={{ mb: 4 }}>
+            {filteredDiscussions.length > 0 ? (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {filteredDiscussions.map((discussion) => {
+                  const timestamp = discussion.timestamp?.toDate
+                    ? discussion.timestamp.toDate()
+                    : new Date();
+                  const isLiked = userLikes[discussion.id];
+
+                  return (
+                    <Card
+                      key={discussion.id}
+                      sx={{
+                        p: 2.5,
+                        cursor: "pointer",
+                        border: "1px solid #084518",
+                        borderRadius: "8px",
+                        width: "100%",
+                        bgcolor: "#fff",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          boxShadow: "0 4px 12px rgba(46, 213, 115, 0.1)",
+                          borderColor: "#148f35ff",
+                        },
+                      }}
+                      onClick={() => navigate(`/forum/${discussion.id}`)}
+                      elevation={0}
+                    >
+                      <CardContent sx={{ p: 0 }}>
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                          {/* Author Avatar */}
+                          <Avatar
+                            src={discussion.authorPhoto}
+                            alt={discussion.authorName}
+                            sx={{ width: 44, height: 44, bgcolor: "#2ED573" }}
                           >
-                            <Box>
-                              <Typography
-                                variant="subtitle2"
-                                sx={{ fontWeight: 600, color: "#1a1a1a" }}
-                              >
-                                {discussion.authorName}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                sx={{ color: "#999" }}
-                              >
-                                {formatTimeAgo(timestamp, currentTime)}
-                              </Typography>
+                            {getInitials(discussion.authorFirstName)}
+                          </Avatar>
+
+                          {/* Content */}
+                          <Box sx={{ flex: 1 }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "start",
+                                mb: 1,
+                              }}
+                            >
+                              <Box>
+                                <Typography
+                                  variant="subtitle2"
+                                  sx={{ fontWeight: 600, color: "#000" }}
+                                >
+                                  {discussion.authorName}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: "#000" }}
+                                >
+                                  {formatTimeAgo(timestamp, currentTime)}
+                                </Typography>
+                              </Box>
+
+                              {/* More Menu Button */}
+                              <Box>
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) =>
+                                    handleMenuOpen(e, discussion.id)
+                                  }
+                                  sx={{
+                                    color: "#000  ",
+                                    "&:hover": {
+                                      bgcolor: "rgba(46, 213, 115, 0.08)",
+                                    },
+                                  }}
+                                >
+                                  <MoreVert fontSize="small" />
+                                </IconButton>
+                                <Menu
+                                  anchorEl={anchorEl}
+                                  open={
+                                    Boolean(anchorEl) &&
+                                    selectedPostId === discussion.id
+                                  }
+                                  onClose={handleMenuClose}
+                                  anchorOrigin={{
+                                    vertical: "bottom",
+                                    horizontal: "right",
+                                  }}
+                                  transformOrigin={{
+                                    vertical: "top",
+                                    horizontal: "right",
+                                  }}
+                                >
+                                  <MenuItem
+                                    onClick={handleMenuDelete}
+                                    sx={{ color: "#ff4444" }}
+                                  >
+                                    <Delete fontSize="small" sx={{ mr: 1 }} />
+                                    Delete
+                                  </MenuItem>
+                                </Menu>
+                              </Box>
                             </Box>
 
-                            {/* More Menu Button */}
-                            <Box>
-                              <IconButton
+                            {/* Title */}
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                mt: 0.5,
+                                mb: 1,
+                                fontWeight: 600,
+                                color: "#000",
+                                fontSize: "16px",
+                              }}
+                            >
+                              {discussion.title}
+                            </Typography>
+
+                            {/* Content Preview */}
+                            <Typography
+                              variant="body2"
+                              sx={{ color: "#000", mb: 2, lineHeight: 1.5 }}
+                            >
+                              {discussion.content.length > 150
+                                ? `${discussion.content.substring(0, 150)}...`
+                                : discussion.content}
+                            </Typography>
+
+                            {/* Engagement Stats */}
+                            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                              <Button
                                 size="small"
-                                onClick={(e) =>
-                                  handleMenuOpen(e, discussion.id)
+                                startIcon={
+                                  isLiked ? <Favorite /> : <FavoriteBorder />
                                 }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleLike(discussion);
+                                }}
                                 sx={{
-                                  color: "#999",
+                                  ...pillButton,
+                                  padding: "6px 10px",
+                                  fontSize: 14,
+                                  color: "#000",
+
                                   "&:hover": {
-                                    bgcolor: "rgba(46, 213, 115, 0.08)",
+                                    backgroundColor: isLiked
+                                      ? "#00000011"
+                                      : "rgba(46,213,115,0.08)",
                                   },
                                 }}
                               >
-                                <MoreVert fontSize="small" />
-                              </IconButton>
-                              <Menu
-                                anchorEl={anchorEl}
-                                open={
-                                  Boolean(anchorEl) &&
-                                  selectedPostId === discussion.id
-                                }
-                                onClose={handleMenuClose}
-                                anchorOrigin={{
-                                  vertical: "bottom",
-                                  horizontal: "right",
-                                }}
-                                transformOrigin={{
-                                  vertical: "top",
-                                  horizontal: "right",
+                                {discussion.likesCount || 0}
+                              </Button>
+                              <Button
+                                size="small"
+                                startIcon={<Comment />}
+                                sx={{
+                                  ...pillButton,
+                                  padding: "6px 10px",
+                                  fontSize: 14,
+                                  color: "#000",
+
+                                  "&:hover": {
+                                    backgroundColor: isLiked
+                                      ? "#00000011"
+                                      : "rgba(46,213,115,0.08)",
+                                  },
                                 }}
                               >
-                                <MenuItem
-                                  onClick={handleMenuDelete}
-                                  sx={{ color: "#ff4444" }}
-                                >
-                                  <Delete fontSize="small" sx={{ mr: 1 }} />
-                                  Delete
-                                </MenuItem>
-                              </Menu>
-                            </Box>
+                                {discussion.commentsCount || 0}
+                              </Button>
+                            </Stack>
                           </Box>
-
-                          {/* Title */}
-                          <Typography
-                            variant="h6"
-                            sx={{
-                              mt: 0.5,
-                              mb: 1,
-                              fontWeight: 600,
-                              color: "#1a1a1a",
-                              fontSize: "16px",
-                            }}
-                          >
-                            {discussion.title}
-                          </Typography>
-
-                          {/* Content Preview */}
-                          <Typography
-                            variant="body2"
-                            sx={{ color: "#666", mb: 2, lineHeight: 1.5 }}
-                          >
-                            {discussion.content.length > 150
-                              ? `${discussion.content.substring(0, 150)}...`
-                              : discussion.content}
-                          </Typography>
-
-                          {/* Engagement Stats */}
-                          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-                            <Button
-                              size="small"
-                              startIcon={
-                                isLiked ? <Favorite /> : <FavoriteBorder />
-                              }
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleLike(discussion);
-                              }}
-                              sx={{
-                                color: isLiked ? "#ff4444" : "#999",
-                                textTransform: "none",
-                                "&:hover": {
-                                  bgcolor: "rgba(46, 213, 115, 0.08)",
-                                },
-                              }}
-                            >
-                              {discussion.likesCount || 0}
-                            </Button>
-                            <Button
-                              size="small"
-                              startIcon={<Comment />}
-                              sx={{
-                                color: "#2ED573",
-                                textTransform: "none",
-                                "&:hover": {
-                                  bgcolor: "rgba(46, 213, 115, 0.08)",
-                                },
-                              }}
-                            >
-                              {discussion.commentsCount || 0}
-                            </Button>
-                          </Stack>
                         </Box>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </Box>
-          ) : (
-            <Paper
-              sx={{
-                p: 4,
-                textAlign: "center",
-                borderRadius: "8px",
-                bgcolor: "#fff",
-                border: "1px solid #e0e0e0",
-              }}
-              elevation={0}
-            >
-              <Typography variant="body1" sx={{ color: "#999" }}>
-                No discussions found. Be the first to start one!
-              </Typography>
-            </Paper>
-          )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </Box>
+            ) : (
+              <Paper
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  borderRadius: "8px",
+                  bgcolor: "#fff",
+                  border: "1px solid #e0e0e0",
+                }}
+                elevation={0}
+              >
+                <Typography
+                  variant="body1"
+                  sx={{ color: "#999", fontFamily: '"Poppins", sans-serif' }}
+                >
+                  No discussions found. Be the first to start one!
+                </Typography>
+              </Paper>
+            )}
+          </Box>
         </Box>
 
         {/* New/Edit Discussion Modal */}
@@ -581,7 +655,12 @@ function Forum() {
           >
             <Typography
               variant="h6"
-              sx={{ mb: 3, fontWeight: 600, color: "#1a1a1a" }}
+              sx={{
+                mb: 3,
+                fontWeight: 600,
+                color: "#1a1a1a",
+                fontFamily: '"Poppins", sans-serif',
+              }}
             >
               {editingId ? "Edit Discussion" : "New Discussion"}
             </Typography>
@@ -601,7 +680,7 @@ function Forum() {
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "8px",
                   "&.Mui-focused fieldset": {
-                    borderColor: "#2ED573",
+                    borderColor: "#34A853",
                     borderWidth: "2px",
                   },
                 },
@@ -633,32 +712,10 @@ function Forum() {
             />
 
             <Stack direction="row" spacing={2}>
-              <Button
-                variant="contained"
-                onClick={saveDiscussion}
-                sx={{
-                  backgroundColor: "#2ED573",
-                  color: "#fff",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  borderRadius: "8px",
-                  "&:hover": { backgroundColor: "#26c061" },
-                }}
-              >
+              <Button onClick={saveDiscussion} sx={pillButtonFilled}>
                 {editingId ? "Update" : "Create"}
               </Button>
-              <Button
-                variant="outlined"
-                onClick={() => setModalVisible(false)}
-                sx={{
-                  borderColor: "#2ED573",
-                  color: "#2ED573",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  borderRadius: "8px",
-                  "&:hover": { bgcolor: "rgba(46, 213, 115, 0.08)" },
-                }}
-              >
+              <Button onClick={() => setModalVisible(false)} sx={pillButton}>
                 Cancel
               </Button>
             </Stack>

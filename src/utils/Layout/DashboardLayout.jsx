@@ -4,9 +4,7 @@ import {
   Drawer,
   List,
   ListItem,
-  ListItemButton,
-  ListItemText,
-  Typography,
+    Typography,
   AppBar,
   Toolbar,
   IconButton,
@@ -14,7 +12,6 @@ import {
   useTheme,
   useMediaQuery,
   Button,
-  ThemeProvider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -28,7 +25,6 @@ import { auth } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import theme from "../theme/theme";
 
 
 function DashboardLayout({ children }) {

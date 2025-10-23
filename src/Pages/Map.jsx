@@ -89,8 +89,8 @@ function Map() {
           mb: 1,
           borderRadius: 2,
           cursor: "pointer",
-          border: isSelected ? "3px solid #2ED573" : "1px solid #2ED573",
-          backgroundColor: isSelected ? "inherit" : "white",
+          border: isSelected ? "3px solid #34A853" : "1px solid #34A853",
+          backgroundColor: isSelected ? "#e5fcebff" : "white",
         }}
         elevation={0}
         onClick={() => handleCardClick(item)}
@@ -102,7 +102,7 @@ function Map() {
               sx={{
                 height: 70, // Match the text height
                 borderRightWidth: 3, // Thicker line
-                borderColor: "#2ED573", // Color
+                borderColor: "#34A853", // Color
                 borderRadius: 2,
                 mr: 2, // More margin for better spacing
               }}
@@ -321,7 +321,7 @@ function Map() {
           }}
         >
           <Typography
-            variant="h3"
+            variant="h2"
             sx={{ fontWeight: "bold", fontFamily: '"Poppins", sans-serif' }}
           >
             MAP
@@ -342,12 +342,13 @@ function Map() {
             sx={{
               width: 300,
               "& .MuiOutlinedInput-root": {
+                backgroundColor: "#fff",
                 borderRadius: "15px",
                 "&.Mui-focused fieldset": {
-                  borderColor: "#2ED573",
+                  borderColor: "#084518",
                 },
                 "&:hover fieldset": {
-                  borderColor: "#2ED573",
+                  borderColor: "#084518",
                 },
               },
             }}
@@ -359,117 +360,124 @@ function Map() {
             borderRadius: 2,
             overflow: "hidden",
             display: "flex",
-            height: "80vh",
+            height: "81vh",
           }}
         >
-          {/* Left side list */}
-          <Box sx={{ width: "40%", p: 2, overflowY: "auto" }}>
-            <Box
-              sx={{
-                display: "flex",
-              }}
-            >
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-                  OVERSEE
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  List of places needed action
-                </Typography>
-              </Box>
+          <Box sx={{
+            backgroundColor: "#fff",
+            flex: 1,
+            display: "flex"
+          }}>
+            {/* Left side list */}
+            <Box sx={{ width: "40%", p: 2, overflowY: "auto" }}>
               <Box
                 sx={{
                   display: "flex",
-                  alignItems: "center",
                 }}
               >
-                <IconButton
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+                    OVERSEE
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    List of places needed action
+                  </Typography>
+                </Box>
+                <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    mt: 1,
                   }}
-                  aria-controls={open ? "basic-menu" : undefined}
-                  aria-haspopup="true"
-                  aria-expanded={open ? "true" : undefined}
-                  onClick={handleClick}
                 >
-                  <FilterListAltIcon sx={{ color: "#2ED573" }} />
-                </IconButton>
-                <Menu
-                  id="basic-menu"
-                  anchorEl={anchorEl}
-                  open={open}
-                  onClose={handleClose}
-                  slotProps={{
-                    list: {
-                      "aria-labelledby": "basic-button",
-                    },
-                  }}
-                  transformOrigin={{ horizontal: "right", vertical: "top" }}
-                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-                >
-                  <MenuItem onClick={handleClose}>All</MenuItem>
-                  <MenuItem onClick={handleClose}>Responded</MenuItem>
-                  <MenuItem onClick={handleClose}>Ignored</MenuItem>
-                </Menu>
+                  <IconButton
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mt: 1,
+                    }}
+                    aria-controls={open ? "basic-menu" : undefined}
+                    aria-haspopup="true"
+                    aria-expanded={open ? "true" : undefined}
+                    onClick={handleClick}
+                  >
+                    <FilterListAltIcon sx={{ color: "#084518" }} />
+                  </IconButton>
+                  <Menu
+                    id="basic-menu"
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    slotProps={{
+                      list: {
+                        "aria-labelledby": "basic-button",
+                      },
+                    }}
+                    transformOrigin={{ horizontal: "right", vertical: "top" }}
+                    anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                  >
+                    <MenuItem onClick={handleClose}>All</MenuItem>
+                    <MenuItem onClick={handleClose}>Responded</MenuItem>
+                    <MenuItem onClick={handleClose}>Ignored</MenuItem>
+                  </Menu>
+                </Box>
               </Box>
+
+              {filteredReports.length === 0 ? (
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ textAlign: "center", py: 4 }}
+                >
+                  No reports available
+                </Typography>
+              ) : (
+                filteredReports.map((item) => {
+                  const formattedDate = item.timestamp?.toDate
+                    ? format(item.timestamp.toDate(), "hh:mma - MMM d")
+                    : "";
+
+                  return renderListItem(item);
+                })
+              )}
             </Box>
 
-            {filteredReports.length === 0 ? (
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{ textAlign: "center", py: 4 }}
-              >
-                No reports available
-              </Typography>
-            ) : (
-              filteredReports.map((item) => {
-                const formattedDate = item.timestamp?.toDate
-                  ? format(item.timestamp.toDate(), "hh:mma - MMM d")
-                  : "";
+            {/* Right side map */}
+            <Box sx={{ flex: 1, position: "relative", padding: 2, }}>
+              <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+                <GoogleMap
+                  defaultZoom={16}
+                  defaultCenter={{ lat: 10.309, lng: 123.893 }}
+                  options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID }}
+                  style={{ width: "100%", height: "100%", borderRadius: 2 }}
+                  onLoad={onLoad}
+                  fullscreenControl={true}
 
-                return renderListItem(item);
-              })
-            )}
-          </Box>
-
-          {/* Right side map */}
-          <Box sx={{ flex: 1, position: "relative" }}>
-            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-              <GoogleMap
-                defaultZoom={16}
-                defaultCenter={{ lat: 10.309, lng: 123.893 }}
-                options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID }}
-                style={{ width: "100%", height: "100%" }}
-                onLoad={onLoad}
-                fullscreenControl={true}
-              >
-                {selectedItem
-                  ? null
-                  : reports.map((item) =>
-                      item.location &&
-                      item.location.length >= 2 &&
-                      !isNaN(parseFloat(item.location[1])) &&
-                      !isNaN(parseFloat(item.location[0])) ? (
-                        <AdvancedMarker
-                          key={item.id}
-                          position={{
-                            lat: parseFloat(item.location[1]),
-                            lng: parseFloat(item.location[0]),
-                          }}
-                        />
-                      ) : null
-                    )}
-                <Direction selectedItem={selectedItem} />
-              </GoogleMap>
-            </APIProvider>
+                >
+                  {selectedItem
+                    ? null
+                    : reports.map((item) =>
+                        item.location &&
+                        item.location.length >= 2 &&
+                        !isNaN(parseFloat(item.location[1])) &&
+                        !isNaN(parseFloat(item.location[0])) ? (
+                          <AdvancedMarker
+                            key={item.id}
+                            position={{
+                              lat: parseFloat(item.location[1]),
+                              lng: parseFloat(item.location[0]),
+                            }}
+                          />
+                        ) : null
+                      )}
+                  <Direction selectedItem={selectedItem} />
+                </GoogleMap>
+              </APIProvider>
+            </Box>
           </Box>
         </Box>
       </Box>

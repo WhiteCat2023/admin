@@ -34,7 +34,7 @@ function Profile() {
         title: 'Error!',
         text: 'User ID not available',
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#34A853'
       });
       return;
     }
@@ -52,14 +52,14 @@ function Profile() {
           title: 'Success!',
           text: 'Profile picture updated successfully',
           icon: 'success',
-          confirmButtonColor: '#2ED573'
+          confirmButtonColor: '#34A853'
         });
       } else {
         Swal.fire({
           title: 'Error!',
           text: result.message || "Failed to update profile picture",
           icon: 'error',
-          confirmButtonColor: '#2ED573'
+          confirmButtonColor: '#34A853'
         });
       }
     } catch (error) {
@@ -68,7 +68,7 @@ function Profile() {
         title: 'Error!',
         text: "Error updating profile picture: " + error.message,
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#34A853'
       });
     }
   };
@@ -79,7 +79,7 @@ function Profile() {
         title: 'Error!',
         text: 'User ID not available',
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#34A853'
       });
       return;
     }
@@ -97,14 +97,14 @@ function Profile() {
           title: 'Success!',
           text: 'Cover photo updated successfully',
           icon: 'success',
-          confirmButtonColor: '#2ED573'
+          confirmButtonColor: '#34A853'
         });
       } else {
         Swal.fire({
           title: 'Error!',
           text: result.message || "Failed to update cover photo",
           icon: 'error',
-          confirmButtonColor: '#2ED573'
+          confirmButtonColor: '#34A853'
         });
       }
     } catch (error) {
@@ -113,7 +113,7 @@ function Profile() {
         title: 'Error!',
         text: "Error updating cover photo: " + error.message,
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#34A853'
       });
     }
   };
@@ -157,7 +157,7 @@ function Profile() {
             }}
           >
             <IconButton
-              sx={{ color: "#2ED573" }}
+              sx={{ color: "#34A853" }}
               onClick={() => setOpenCoverPhotoModal(true)}
             >
               <EditIcon />
@@ -176,7 +176,7 @@ function Profile() {
                   mr: 3,
                   border: "4px solid white",
                   boxShadow: 2,
-                  bgcolor: "#2ED573",
+                  bgcolor: "#34A853",
                 }}
               >
                 {getInitials(userDoc?.firstName)}
@@ -195,7 +195,7 @@ function Profile() {
                 }}
                 onClick={() => setOpenProfilePicModal(true)}
               >
-                <EditIcon sx={{ color: "#2ED573", fontSize: 16 }} />
+                <EditIcon sx={{ color: "#34A853", fontSize: 16 }} />
               </IconButton>
             </Box>
             <Box>
@@ -218,10 +218,10 @@ function Profile() {
             sx={{
               mb: 3,
               "& .MuiTab-root.Mui-selected": {
-                color: "#2ED573",
+                color: "#34A853",
               },
               "& .MuiTabs-indicator": {
-                backgroundColor: "#2ED573",
+                backgroundColor: "#34A853",
               },
             }}
           >

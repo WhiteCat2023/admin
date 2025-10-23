@@ -424,7 +424,7 @@ function Report() {
             mb: 2,
           }}
         >
-          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h2" sx={{ fontWeight: "bold" }}>
             Reports
           </Typography>
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
@@ -444,12 +444,13 @@ function Report() {
               sx={{
                 width: 300,
                 "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#fff",
                   borderRadius: "15px",
                   "&.Mui-focused fieldset": {
-                    borderColor: "#2ED573",
+                    borderColor: "#084518",
                   },
                   "&:hover fieldset": {
-                    borderColor: "#2ED573",
+                    borderColor: "#084518",
                   },
                 },
               }}
@@ -496,12 +497,12 @@ function Report() {
                 height: 800,
                 minWidth: 700,
                 "& .MuiCheckbox-root": {
-                  color: "#2ED573",
+                  color: "#084518",
                   "&.Mui-checked": {
-                    color: "#2ED573",
+                    color: "#084518",
                   },
                   "&:not(.Mui-checked)": {
-                    color: "#2ED573",
+                    color: "#084518",
                   },
                 },
                 "& .MuiDataGrid-row.Mui-selected": {
