@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userDoc, setUserDoc] = useState(null);
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -20,6 +21,7 @@ export function AuthProvider({ children }) {
         if (result.status === 200) {
           console.log(result);
           setUserDoc(result.data);
+          setRole(result.data.role); // Set the role from userDoc data
           setLoading(false);
         }
       }
@@ -29,11 +31,16 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    console.log("User role updated:", role);
+  }, [role]);
+
   const refetchUserDoc = async () => {
     if (user) {
       const result = await getUserInfoFromFirestore(user.uid);
       if (result.status === 200) {
         setUserDoc(result.data);
+        setRole(result.data.role); // Update the role if userDoc is refetched
       }
     }
   };
@@ -42,6 +49,7 @@ export function AuthProvider({ children }) {
     user,
     loading,
     userDoc,
+    role, // Expose the role
     refetchUserDoc,
   };
 

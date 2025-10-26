@@ -1,5 +1,5 @@
 import { HttpStatus } from "../enums/status";
-import { getAllUsers, getUserDoc, updateUserName, updateUserPhoneNumber, updateProfilePic, updateCoverPhoto as updateCoverPhotoService } from "../services/firebase/users.services";
+import { getAllUsers, getUserDoc, updateUserName, updateUserPhoneNumber, updateProfilePic, updateCoverPhoto as updateCoverPhotoService, getAllAdminUsers } from "../services/firebase/users.services";
 
 export const updateName =  async ( req ) => {
     try {
@@ -52,6 +52,22 @@ export const allUsers = ( reqCallback ) => {
         };
     }
 }
+
+export const fetchAdmins = (callBack) => {
+  try {
+    getAllAdminUsers(callBack);
+    return {
+      status: HttpStatus.OK,
+      message: "Fetched all admin users successfully",
+    };
+  } catch (error) {
+    console.error(`Get all admin users Error: ${error.message}`);
+    return {
+      status: HttpStatus.BAD_REQUEST,
+      message: "Failed to fetch admin users",
+    };
+  }
+};
 
 export const getUserInfoFromFirestore = async ( uid ) => {
     try{

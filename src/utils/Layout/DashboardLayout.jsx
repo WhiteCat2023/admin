@@ -4,7 +4,7 @@ import {
   Drawer,
   List,
   ListItem,
-    Typography,
+  Typography,
   AppBar,
   Toolbar,
   IconButton,
@@ -25,25 +25,38 @@ import { auth } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-
+import { Sos } from "@mui/icons-material";
+import { useAuth } from "../../context/AuthContext";
 
 function DashboardLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { userDoc, loading } = useAuth();
   const drawerWidth = 300;
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
-  const routes = [
+  const baseRoutes = [
     { text: "Dashboard", path: "", icon: <DashboardIcon /> },
     { text: "Map", path: "map", icon: <MapIcon /> },
     { text: "Reports", path: "report", icon: <AssessmentIcon /> },
     { text: "Forum", path: "forum", icon: <ForumIcon /> },
-    // { text: "Notification", path: "notification", icon: <NotificationsIcon /> },
-    { text: "Admin Users", path: "admin-users", icon: <PeopleAltIcon /> },
+    { text: "Sos", path: "sos", icon: <Sos /> },
     { text: "Profile", path: "profile", icon: <PersonIcon /> },
   ];
+
+  // Admin Users only visible for super admin
+  const adminRoute = {
+    text: "Admin Users",
+    path: "admin-users",
+    icon: <PeopleAltIcon />,
+  };
+
+  const routes =
+    userDoc?.role === "super"
+      ? [...baseRoutes.slice(0, -1), adminRoute, baseRoutes[baseRoutes.length - 1]]
+      : baseRoutes;
 
   const getInitialIndex = () => {
     const index = routes.findIndex(
@@ -61,7 +74,7 @@ function DashboardLayout({ children }) {
     if (currentIndex !== -1) {
       setSelectedIndex(currentIndex);
     }
-  }, [location.pathname]);
+  }, [location.pathname, routes]);
 
   const handleListItemClick = (event, index) => {
     setSelectedIndex(index);

@@ -28,6 +28,21 @@ function ForumPost() {
 
   // new state for likes
   const [likedComments, setLikedComments] = useState({}) // { commentId: true/false }
+  // likes for replies keyed by `${commentId}_${replyId}`
+  const [likedReplies, setLikedReplies] = useState({}) // { "commentId_replyId": true/false }
+  // per-comment replies visibility (Replies button)
+  const [repliesVisible, setRepliesVisible] = useState({}) // { commentId: true/false }
+  // per-reply (children) visibility keyed by `${commentId}_${replyId}`
+  const [replyChildrenVisible, setReplyChildrenVisible] = useState({}) // { "commentId_replyId": true/false }
+  
+  // helper: total replies count for a comment (top + children)
+  const countReplies = (commentId) => {
+    const group = repliesMap[commentId];
+    if (!group) return 0;
+    const topCount = (group.top || []).length;
+    const childrenCount = Object.values(group.children || {}).reduce((s, arr) => s + (arr?.length || 0), 0);
+    return topCount + childrenCount;
+  }
 
   useEffect(() => {
     setShowContent(true)
@@ -101,6 +116,24 @@ function ForumPost() {
           return acc;
         }, {});
         setRepliesMap((prev) => ({ ...prev, [c.id]: { top, children } }));
+
+        // If user is present, check likes for each reply for the current user
+        if (user) {
+          const checks = fetched.map((r) =>
+            getDoc(doc(db, "forums", id, "comments", c.id, "replies", r.id, "likes", user.uid))
+              .then((snap) => ({ id: r.id, liked: snap.exists() }))
+              .catch(() => ({ id: r.id, liked: false }))
+          );
+          Promise.all(checks).then((results) => {
+            setLikedReplies((prev) => {
+              const map = { ...prev };
+              results.forEach((r) => {
+                map[`${c.id}_${r.id}`] = r.liked;
+              });
+              return map;
+            });
+          });
+        }
       });
 
       unsubscribes.push(unsub);
@@ -112,7 +145,7 @@ function ForumPost() {
         try { u(); } catch (err) { /* ignore */ }
       });
     };
-  }, [id, comments])
+  }, [id, comments, user])
 
   // when comments change, check whether current user liked each comment
   useEffect(() => {
@@ -168,6 +201,98 @@ function ForumPost() {
     }
   }
 
+  // helper to patch likes count for a reply inside repliesMap
+  const updateReplyLikesInMap = (commentId, replyId, delta) => {
+    setRepliesMap((prev) => {
+      const map = { ...prev };
+      const group = map[commentId];
+      if (!group) return prev;
+      const updateInArray = (arr) => arr.map((r) => r.id === replyId ? { ...r, likesCount: Math.max(0, (r.likesCount || 0) + delta) } : r);
+      // update top-level if present
+      if (group.top) group.top = updateInArray(group.top);
+      // update children arrays
+      if (group.children) {
+        Object.keys(group.children).forEach((parentId) => {
+          group.children[parentId] = updateInArray(group.children[parentId]);
+        });
+      }
+      return { ...map, [commentId]: group };
+    });
+  };
+
+  // NEW: recursive renderer for a reply and its nested children
+  const ReplyItem = ({ commentId, reply, depth = 0 }) => {
+    const replyKey = `${commentId}_${reply.id}`;
+    const children = (repliesMap[commentId]?.children || {})[reply.id] || [];
+    const replyTimestamp = reply.timestamp?.toDate ? reply.timestamp.toDate() : new Date();
+
+    return (
+      <Box key={reply.id} sx={{ mb: 1 }}>
+        <Card
+          sx={{
+            p: 1.25,
+            borderRadius: "6px",
+            border: "1px solid #f0f0f0",
+            bgcolor: depth === 0 ? "#fafafa" : "#fff",
+          }}
+          elevation={0}
+        >
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Avatar
+              src={reply.authorPhoto}
+              alt={reply.authorName}
+              sx={{ width: Math.max(28, 32 - depth * 2), height: Math.max(28, 32 - depth * 2), bgcolor: "#2ED573" }}
+            >
+              {getInitials(reply.authorFirstName)}
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{reply.authorName}</Typography>
+              <Typography variant="caption" sx={{ color: "#999" }}>{formatTimeAgo(replyTimestamp)}</Typography>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>{reply.text}</Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 1, mt: 1, pl: Math.max(4 + depth * 4, 4), alignItems: "center" }}>
+            <Button
+              size="small"
+              onClick={() => { setReplyTarget({ commentId, parentReplyId: reply.id }); setReplyText(""); }}
+              sx={{ textTransform: "none", color: "#2ED573", fontWeight: 600 }}
+            >
+              Reply
+            </Button>
+
+            <Button
+              size="small"
+              onClick={() => toggleLikeReply(commentId, reply.id)}
+              startIcon={ likedReplies[replyKey] ? <ThumbUp fontSize="small" /> : <ThumbUpOffAlt fontSize="small" /> }
+              sx={{ textTransform: "none", color: likedReplies[replyKey] ? "#2ED573" : "#999", fontWeight: 600, "&:hover": { bgcolor: "transparent" } }}
+            >
+              {reply.likesCount || 0}
+            </Button>
+
+            {children.length > 0 && (
+              <Button
+                size="small"
+                onClick={() => setReplyChildrenVisible((prev) => ({ ...prev, [replyKey]: !prev[replyKey] }))}
+                sx={{ textTransform: "none", color: "#2ED573", fontWeight: 600 }}
+              >
+                {replyChildrenVisible[replyKey] ? `Hide (${children.length})` : `Replies (${children.length})`}
+              </Button>
+            )}
+          </Box>
+        </Card>
+
+        {children.length > 0 && replyChildrenVisible[replyKey] && (
+          <Box sx={{ pl: 6, mt: 1 }}>
+            {children.map((child) => (
+              <ReplyItem key={child.id} commentId={commentId} reply={child} depth={depth + 1} />
+            ))}
+          </Box>
+        )}
+      </Box>
+    );
+  };
+  
   // NEW: add a reply to a specific comment (optional parentReplyId)
   const addReply = async (commentId, parentReplyId = null) => {
     if (!replyText.trim() || !user) return
@@ -192,31 +317,75 @@ function ForumPost() {
     }
   }
 
+  // NEW: toggle like for a reply (optimistic UI -> then Firestore; revert on error)
+  const toggleLikeReply = async (commentId, replyId) => {
+    if (!user) return;
+    const key = `${commentId}_${replyId}`;
+    const currentlyLiked = !!likedReplies[key];
+
+    // optimistic UI update
+    setLikedReplies((prev) => ({ ...prev, [key]: !currentlyLiked }));
+    updateReplyLikesInMap(commentId, replyId, currentlyLiked ? -1 : 1);
+
+    try {
+      const likeRef = doc(db, "forums", id, "comments", commentId, "replies", replyId, "likes", user.uid);
+      const replyRef = doc(db, "forums", id, "comments", commentId, "replies", replyId);
+
+      if (currentlyLiked) {
+        // user is unliking
+        await deleteDoc(likeRef);
+        await updateDoc(replyRef, { likesCount: increment(-1) });
+      } else {
+        // user is liking
+        await setDoc(likeRef, { uid: user.uid, timestamp: serverTimestamp() });
+        await updateDoc(replyRef, { likesCount: increment(1) });
+      }
+    } catch (error) {
+      // revert optimistic UI on error
+      setLikedReplies((prev) => ({ ...prev, [key]: currentlyLiked }));
+      updateReplyLikesInMap(commentId, replyId, currentlyLiked ? 1 : -1);
+      console.error("Error toggling reply like:", error);
+    }
+  };
+
+  // NEW: toggle like for a comment (optimistic UI -> then Firestore; revert on error)
   const toggleLike = async (commentId) => {
     if (!user) return;
+    const currentlyLiked = !!likedComments[commentId];
+
+    // optimistic UI update
+    setLikedComments((prev) => ({ ...prev, [commentId]: !currentlyLiked }));
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId ? { ...c, likesCount: Math.max(0, (c.likesCount || 0) + (currentlyLiked ? -1 : 1)) } : c
+      )
+    );
+
     try {
       const likeRef = doc(db, "forums", id, "comments", commentId, "likes", user.uid);
       const commentRef = doc(db, "forums", id, "comments", commentId);
-      const likeSnap = await getDoc(likeRef);
 
-      if (likeSnap.exists()) {
+      if (currentlyLiked) {
         // unlike
         await deleteDoc(likeRef);
         await updateDoc(commentRef, { likesCount: increment(-1) });
-        setLikedComments((prev) => ({ ...prev, [commentId]: false }));
-        setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, likesCount: (c.likesCount || 0) - 1 } : c));
       } else {
         // like
         await setDoc(likeRef, { uid: user.uid, timestamp: serverTimestamp() });
         await updateDoc(commentRef, { likesCount: increment(1) });
-        setLikedComments((prev) => ({ ...prev, [commentId]: true }));
-        setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, likesCount: (c.likesCount || 0) + 1 } : c));
       }
     } catch (error) {
+      // revert optimistic UI on error
+      setLikedComments((prev) => ({ ...prev, [commentId]: currentlyLiked }));
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId ? { ...c, likesCount: Math.max(0, (c.likesCount || 0) + (currentlyLiked ? 1 : -1)) } : c
+        )
+      );
       console.error("Error toggling like:", error);
     }
   };
-
+  
   const handlePostMenuOpen = (e) => {
     e.stopPropagation()
     setPostMenuAnchor(e.currentTarget)
@@ -586,84 +755,27 @@ function ForumPost() {
                           {comment.text}
                         </Typography>
 
-                        {/* --- NEW: Replies list (top-level + nested children) --- */}
-                        {repliesMap[comment.id] && repliesMap[comment.id].top && repliesMap[comment.id].top.length > 0 && (
+                        {/* Replies toggle button (per comment) */}
+                        {countReplies(comment.id) > 0 && (
+                          <Box sx={{ mt: 1 }}>
+                            <Button
+                              size="small"
+                              onClick={() =>
+                                setRepliesVisible((prev) => ({ ...prev, [comment.id]: !prev[comment.id] }))
+                              }
+                              sx={{ textTransform: "none", color: "#2ED573", fontWeight: 600, mb: 1 }}
+                            >
+                              {repliesVisible[comment.id] ? `Hide Replies (${countReplies(comment.id)})` : `Replies (${countReplies(comment.id)})`}
+                            </Button>
+                          </Box>
+                        )}
+
+                        {/* Top-level replies - shown when toggled visible for this comment */}
+                        {repliesVisible[comment.id] && repliesMap[comment.id] && Array.isArray(repliesMap[comment.id].top) && (
                           <Box sx={{ mt: 2, pl: 6 }}>
-                            {repliesMap[comment.id].top.map((reply) => {
-                              const replyTimestamp = reply.timestamp?.toDate ? reply.timestamp.toDate() : new Date()
-                              const children = (repliesMap[comment.id].children || {})[reply.id] || []
-                              return (
-                                <Box key={reply.id} sx={{ mb: 1 }}>
-                                  <Card
-                                    sx={{
-                                      p: 1.25,
-                                      borderRadius: "6px",
-                                      border: "1px solid #f0f0f0",
-                                      bgcolor: "#fafafa",
-                                    }}
-                                    elevation={0}
-                                  >
-                                    <Box sx={{ display: "flex", gap: 1 }}>
-                                      <Avatar
-                                        src={reply.authorPhoto}
-                                        alt={reply.authorName}
-                                        sx={{ width: 32, height: 32, bgcolor: "#2ED573" }}
-                                      >
-                                        {getInitials(reply.authorFirstName)}
-                                      </Avatar>
-                                      <Box sx={{ flex: 1 }}>
-                                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                          {reply.authorName}
-                                        </Typography>
-                                        <Typography variant="caption" sx={{ color: "#999" }}>
-                                          {formatTimeAgo(replyTimestamp)}
-                                        </Typography>
-                                        <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                          {reply.text}
-                                        </Typography>
-                                      </Box>
-                                    </Box>
-                                  </Card>
-
-                                  {/* nested children replies */}
-                                  {children.length > 0 && (
-                                    <Box sx={{ pl: 6, mt: 1 }}>
-                                      {children.map((child) => {
-                                        const childTimestamp = child.timestamp?.toDate ? child.timestamp.toDate() : new Date()
-                                        return (
-                                          <Card key={child.id} sx={{ p: 1, mb: 1, borderRadius: "6px", border: "1px solid #f5f5f5", bgcolor: "#fff" }} elevation={0}>
-                                            <Box sx={{ display: "flex", gap: 1 }}>
-                                              <Avatar src={child.authorPhoto} alt={child.authorName} sx={{ width: 28, height: 28, bgcolor: "#2ED573" }}>
-                                                {getInitials(child.authorFirstName)}
-                                              </Avatar>
-                                              <Box sx={{ flex: 1 }}>
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{child.authorName}</Typography>
-                                                <Typography variant="caption" sx={{ color: "#999" }}>{formatTimeAgo(childTimestamp)}</Typography>
-                                                <Typography variant="body2" sx={{ mt: 0.5 }}>{child.text}</Typography>
-                                              </Box>
-                                            </Box>
-                                          </Card>
-                                        )
-                                      })}
-                                    </Box>
-                                  )}
-
-                                  {/* Reply action on top-level reply */}
-                                  <Box sx={{ pl: 6, mt: 1, display: "flex", gap: 1 }}>
-                                    <Button
-                                      size="small"
-                                      onClick={() => {
-                                        setReplyTarget({ commentId: comment.id, parentReplyId: reply.id })
-                                        setReplyText("")
-                                      }}
-                                      sx={{ textTransform: "none", color: "#2ED573", fontWeight: 600 }}
-                                    >
-                                      Reply
-                                    </Button>
-                                  </Box>
-                                </Box>
-                              )
-                            })}
+                            {repliesMap[comment.id].top.map((reply) => (
+                              <ReplyItem key={reply.id} commentId={comment.id} reply={reply} depth={0} />
+                            ))}
                           </Box>
                         )}
 

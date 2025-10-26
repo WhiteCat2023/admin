@@ -1,8 +1,16 @@
-import { setDoc, doc, onSnapshot, collection, getDoc, updateDoc, serverTimestamp, getDocs } from "firebase/firestore";
-import { db } from "../../config/firebase";
-import { updatePassword } from "firebase/auth";
+import {
+  doc,
+  setDoc,
+  onSnapshot,
+  collection,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+  getDocs,
+} from "firebase/firestore";
+import { db, auth, storage } from "../../config/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../config/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 /**
  * This function can be use to make reference of documents in the firestore. It accepts a collection param and 
@@ -15,8 +23,8 @@ import { storage } from "../../config/firebase";
  * @param {string} docId 
  * @returns 
  */
-export function userDocRef(collection, docId) {
-  const docRef = doc(db, collection, docId)
+export function userDocRef(collectionName, docId) {
+  const docRef = doc(db, collectionName, docId)
   return docRef
 }
 
@@ -30,11 +38,11 @@ export function userDocRef(collection, docId) {
  * @param {string} field 
  * @param {string} value 
  */
-export async function updateUserDoc(collection, uid, field, value) {
-  const userCollection = userDocRef(collection, uid)
-  if(!collection && !uid && !field && !value) throw new Error("Missing required values: collection, uid, field, value")
+export async function updateUserDoc(collectionName, uid, field, value) {
+  const userCollection = userDocRef(collectionName, uid)
+  if(!collectionName || !uid || !field || value === undefined) throw new Error("Missing required values: collection, uid, field, value")
   const docSnapshot = await getDoc(userCollection)
-  if(!docSnapshot.exists()) throw new Error("User doenst Exist")
+  if(!docSnapshot.exists()) throw new Error("User doesn't exist")
   await updateDoc(userCollection,{
     [field]: value,
     updatedAt: serverTimestamp()
@@ -60,10 +68,9 @@ export async function updateUserName(credentials){
     } else {
       ({ uid, field, value } = credentials);
     }
-    console.log(uid)
     if(!uid) throw new Error("User not found");
 
-    updateUserDoc("admin", uid, field, value)
+    await updateUserDoc("admin", uid, field, value)
 
     return uid
   } catch (error) {
@@ -86,8 +93,9 @@ export async function updateUserPhoneNumber(credentials) {
 
     if(!uid) throw new Error("User not found");
 
-    await setDoc(doc(db, "admin", uid), {
-      phone: phoneNumber
+    await updateDoc(doc(db, "admin", uid), {
+      phone: phoneNumber,
+      updatedAt: serverTimestamp()
     })
     return uid
   } catch (error) {
@@ -120,6 +128,35 @@ export function getAllUsers(callback) {
     return unsubscribe;
   } catch (error) {
     console.error('Error setting up real-time users listener:', error);
+    throw error;
+  }
+}
+
+/**
+ * This function returns all admin users from the Firestore (real-time listener).
+ * If a callback is provided it will be called with the latest list; otherwise it returns an unsubscribe function.
+ * 
+ * By: Berndt Dennis F. Canaya
+ * 
+ * @param {*} callback 
+ * @returns unsubscribe function or throws
+ */
+export function getAllAdminUsers(callback) {
+  try {
+    const usersRef = collection(db, 'admin');
+
+    const unsubscribe = onSnapshot(usersRef, (snapshot) => {
+      const users = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      if (typeof callback === "function") callback(users);
+    });
+
+    return unsubscribe;
+  } catch (error) {
+    console.error('Error setting up real-time admin users listener:', error);
     throw error;
   }
 }
@@ -193,7 +230,7 @@ export async function updateProfilePic(credentials) {
     const downloadURL = await getDownloadURL(storageRef);
 
     // Update Firestore
-    updateUserDoc("admin", uid, "profilePic", downloadURL);
+    await updateUserDoc("admin", uid, "profilePic", downloadURL);
 
     return downloadURL;
   } catch (error) {
@@ -240,13 +277,51 @@ export async function updateCoverPhoto(credentials) {
     const downloadURL = await getDownloadURL(storageRef);
 
     // Update Firestore
-    updateUserDoc("admin", uid, "coverPhoto", downloadURL);
+    await updateUserDoc("admin", uid, "coverPhoto", downloadURL);
 
     return downloadURL;
   } catch (error) {
     console.error(`Cover photo update Error: ${error.message}`);
     throw error;
   }
+}
+
+/**
+ * createAdminUser
+ * - creates an Authentication user with email/password
+ * - creates a Firestore document in "admin" with profile data
+ * - returns the created profile object
+ *
+ * NOTE: createUserWithEmailAndPassword requires the caller to have privilege
+ * (i.e. the current authenticated client must be allowed to create users).
+ * In many setups this is performed by a backend (admin SDK) instead.
+ */
+export async function createAdminUser({ name, email, role = "admin", password }) {
+  if (!email || !password) {
+    throw new Error("Email and password are required to create an admin user.");
+  }
+
+  // create auth user
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const uid = userCredential.user.uid;
+
+  // prepare profile
+  const profile = {
+    uid,
+    name: name || "",
+    email,
+    role,
+    online: false,
+    restricted: false,
+    createdAt: serverTimestamp(),
+  };
+
+  // persist in Firestore under "admin/<uid>"
+  const adminDocRef = doc(db, "admin", uid);
+  await setDoc(adminDocRef, profile);
+
+  // return profile with uid (createdAt will be a server timestamp sentinel)
+  return { ...profile, uid };
 }
 
 

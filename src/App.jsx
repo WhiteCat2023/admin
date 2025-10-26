@@ -12,10 +12,12 @@ import PublicRoute from "./utils/PublicRoute/PublicRoute";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Profile from "./Pages/Profile.jsx";
 import ForumPost from "./Pages/Forum/ForumPost.jsx";
-import AdminUser from "./Pages/AdminUser.jsx";
+import AdminUser from "./Pages/Admin/AdminUser.jsx";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./utils/theme/theme.js";
 import { useEffect } from "react";
+import SignUpAdmin from "./Pages/Admin/SignUpAdmin.jsx";
+import Sos from "./Pages/Sos.jsx";
 
 function App() {
   useEffect(() => {
@@ -72,6 +74,8 @@ function App() {
             { path: "profile", element: <Profile /> },
             { path: "/forum/:id", element: <ForumPost /> },
             { path: "admin-users", element: <AdminUser /> },
+            { path: "/admin-users/signup-admin", element: <SignUpAdmin /> },
+            { path: "sos", element: <Sos /> }
           ],
         },
       ],

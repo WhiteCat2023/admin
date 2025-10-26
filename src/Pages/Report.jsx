@@ -469,11 +469,12 @@ function Report() {
               pageSizeOptions={[20, 50]}
               checkboxSelection
               disableRowSelectionExcludeModel
-              onRowSelectionModelChange={(newSelection) => {
+              onRowSelectionModelChange={(newSelection, e) => {
                 setSelectedRows(newSelection);
                 console.log(newSelection);
               }}
               onRowClick={(params) => {
+                
                 setSelectedReport(params.row);
                 setOpenDialog(true);
               }}

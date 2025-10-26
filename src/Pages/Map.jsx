@@ -265,7 +265,6 @@ function Map() {
 
     // 🧭 Optional info card
     if (!selectedItem || !leg) return null;
-
     return (
       <Box
         sx={{
