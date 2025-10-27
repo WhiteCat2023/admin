@@ -98,6 +98,26 @@ function ReportDetailDialog({ open, onClose, report, onRespond }) {
                   {report?.tier}
                 </span>
               </Typography>
+              {report?.status?.toLowerCase() === "responded" && report?.respondedBy && (
+                <>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    <strong>Responded By:</strong> {report.respondedBy.userName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Responded At:</strong> {report.respondedBy.respondedAt ? new Date(report.respondedBy.respondedAt).toLocaleString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true }) : "N/A"}
+                  </Typography>
+                </>
+              )}
+              {report?.status?.toLowerCase() === "ignored" && report?.ignoredBy && (
+                <>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    <strong>Ignored By:</strong> {report.ignoredBy.userName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Ignored At:</strong> {report.ignoredBy.ignoredAt ? new Date(report.ignoredBy.ignoredAt).toLocaleString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true }) : "N/A"}
+                  </Typography>
+                </>
+              )}
             </Box>
           </Box>
         </Box>
@@ -139,13 +159,15 @@ function ReportDetailDialog({ open, onClose, report, onRespond }) {
         )}
       </DialogContent>
       <DialogActions sx={{ p: 3, pt: 2 }}>
-        <Button
-          variant="contained"
-          sx={{ bgcolor: "#2ED573", "&:hover": { bgcolor: "#1EBF5F" } }}
-          onClick={() => onRespond(report)}
-        >
-          Respond
-        </Button>
+        {report?.status?.toLowerCase() === "pending" && (
+          <Button
+            variant="contained"
+            sx={{ bgcolor: "#2ED573", "&:hover": { bgcolor: "#1EBF5F" } }}
+            onClick={() => onRespond(report)}
+          >
+            Respond
+          </Button>
+        )}
         <Button
           onClick={onClose}
           sx={{ color: "#2ED573" }}

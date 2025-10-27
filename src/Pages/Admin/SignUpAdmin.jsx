@@ -9,8 +9,6 @@ import {
   Select,
   MenuItem,
   Button,
-  Snackbar,
-  Alert,
   IconButton,
   Dialog,
   DialogTitle,
@@ -21,6 +19,7 @@ import {
   Checkbox,
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import Swal from "sweetalert2";
 import { createAdminUser } from "../../utils/services/firebase/users.services";
 
 export default function SignUpAdmin() {
@@ -41,8 +40,6 @@ export default function SignUpAdmin() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [termsError, setTermsError] = useState("");
-
-  const [snack, setSnack] = useState({ open: false, severity: "success", message: "" });
 
   // Email confirmation state
   const [confirmEmailOpen, setConfirmEmailOpen] = useState(false);
@@ -202,7 +199,12 @@ export default function SignUpAdmin() {
       });
       setCreatedEmail(email.trim());
       setConfirmEmailOpen(true);
-      setSnack({ open: true, severity: "success", message: "Admin user created. Please confirm the email." });
+      Swal.fire({
+        icon: "success",
+        title: "Admin User Created",
+        html: `A confirmation email has been sent to <strong>${email.trim()}</strong>. Please check your inbox and confirm your email address.`,
+        confirmButtonText: "OK",
+      });
     } catch (err) {
       console.error(err);
       setSnack({ open: true, severity: "error", message: err?.message || "Failed to create admin user." });
@@ -240,7 +242,11 @@ export default function SignUpAdmin() {
       <Box sx={{ maxWidth: 600, mx: "auto", p: 3 }}>
         {/* added back button next to title */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          <IconButton aria-label="back" onClick={() => window.history.back()} size="large">
+          <IconButton
+            aria-label="back"
+            onClick={() => window.history.back()}
+            size="large"
+          >
             <ArrowBackIosNewIcon />
           </IconButton>
           <Typography variant="h4" sx={{ ml: 1, fontWeight: "bold" }}>
@@ -248,7 +254,11 @@ export default function SignUpAdmin() {
           </Typography>
         </Box>
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+        >
           <FormControl fullWidth error={!!firstNameError}>
             <TextField
               label="First Name"
@@ -257,8 +267,15 @@ export default function SignUpAdmin() {
               required
               fullWidth
               error={!!firstNameError}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#fff",
+                },
+              }}
             />
-            {firstNameError && <FormHelperText>{firstNameError}</FormHelperText>}
+            {firstNameError && (
+              <FormHelperText>{firstNameError}</FormHelperText>
+            )}
           </FormControl>
 
           <FormControl fullWidth error={!!lastNameError}>
@@ -269,6 +286,11 @@ export default function SignUpAdmin() {
               required
               fullWidth
               error={!!lastNameError}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#fff",
+                },
+              }}
             />
             {lastNameError && <FormHelperText>{lastNameError}</FormHelperText>}
           </FormControl>
@@ -282,13 +304,26 @@ export default function SignUpAdmin() {
               required
               fullWidth
               error={!!emailError}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#fff",
+                },
+              }}
             />
             {emailError && <FormHelperText>{emailError}</FormHelperText>}
           </FormControl>
 
           <FormControl fullWidth>
             <InputLabel id="role-select-label">Role</InputLabel>
-            <Select labelId="role-select-label" value={role} label="Role" onChange={(e) => setRole(e.target.value)}>
+            <Select
+              labelId="role-select-label"
+              value={role}
+              label="Role"
+              onChange={(e) => setRole(e.target.value)}
+              sx={{
+                backgroundColor: "#fff",
+              }}
+            >
               <MenuItem value="admin">Admin</MenuItem>
               <MenuItem value="super">Super Admin</MenuItem>
             </Select>
@@ -303,6 +338,11 @@ export default function SignUpAdmin() {
               required
               fullWidth
               error={!!passwordError}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#fff",
+                },
+              }}
               helperText="At least 8 characters with letter, number, and special character"
             />
             {passwordError && <FormHelperText>{passwordError}</FormHelperText>}
@@ -317,8 +357,15 @@ export default function SignUpAdmin() {
               required
               fullWidth
               error={!!confirmPasswordError}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#fff",
+                },
+              }}
             />
-            {confirmPasswordError && <FormHelperText>{confirmPasswordError}</FormHelperText>}
+            {confirmPasswordError && (
+              <FormHelperText>{confirmPasswordError}</FormHelperText>
+            )}
           </FormControl>
 
           <FormControl fullWidth error={!!termsError}>
@@ -334,7 +381,9 @@ export default function SignUpAdmin() {
             {termsError && <FormHelperText error>{termsError}</FormHelperText>}
           </FormControl>
 
-          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 1 }}>
+          <Box
+            sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 1 }}
+          >
             <Button variant="outlined" onClick={resetForm} disabled={loading}>
               Reset
             </Button>
@@ -345,15 +394,23 @@ export default function SignUpAdmin() {
         </Box>
 
         {/* Email Confirmation Dialog */}
-        <Dialog open={confirmEmailOpen} onClose={handleCloseConfirmDialog} fullWidth maxWidth="sm">
+        <Dialog
+          open={confirmEmailOpen}
+          onClose={handleCloseConfirmDialog}
+          fullWidth
+          maxWidth="sm"
+        >
           <DialogTitle>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Confirm Email Address
             </Typography>
           </DialogTitle>
-          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}
+          >
             <Typography variant="body2" color="text.secondary">
-              A confirmation code has been sent to <strong>{createdEmail}</strong>. Please enter it below.
+              A confirmation code has been sent to{" "}
+              <strong>{createdEmail}</strong>. Please enter it below.
             </Typography>
             <TextField
               label="Confirmation Code"
@@ -367,22 +424,15 @@ export default function SignUpAdmin() {
             <Button onClick={handleCloseConfirmDialog} disabled={verifying}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmEmail} variant="contained" disabled={verifying}>
+            <Button
+              onClick={handleConfirmEmail}
+              variant="contained"
+              disabled={verifying}
+            >
               {verifying ? "Verifying..." : "Verify"}
             </Button>
           </DialogActions>
         </Dialog>
-
-        <Snackbar
-          open={snack.open}
-          autoHideDuration={5000}
-          onClose={() => setSnack((s) => ({ ...s, open: false }))}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert severity={snack.severity} onClose={() => setSnack((s) => ({ ...s, open: false }))}>
-            {snack.message}
-          </Alert>
-        </Snackbar>
       </Box>
     </Fade>
   );

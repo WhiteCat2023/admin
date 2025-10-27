@@ -24,8 +24,10 @@ import CustomToolbar from "../utils/components/CustomToolbar";
 import ReportDetailDialog from "../utils/components/ReportDetailDialog";
 import Swal from "sweetalert2";
 import { getTierColor } from "../utils/helpers";
+import { useAuth } from "../context/AuthContext";
 
 function Report() {
+  const { user, userDoc } = useAuth();
   const [showContent, setShowContent] = useState(true);
   const [selectedRows, setSelectedRows] = useState({
     type: "include",
@@ -72,7 +74,17 @@ function Report() {
     try {
       await Promise.all(
         [...selectedRows.ids].map((id) =>
-          updateReportStatus({ docId: id, status: "responded" })
+          updateReportStatus({
+            docId: id,
+            status: "responded",
+            respondedBy: {
+              userId: user?.uid,
+              userName: userDoc?.firstName || user?.displayName || "Unknown",
+              email: user?.email,
+              respondedAt: new Date(),
+              timestamp: new Date(),
+            },
+          })
         )
       );
       setSelectedRows([]);
@@ -85,7 +97,17 @@ function Report() {
   const handleRespondRow = async () => {
     if (!selectedRow.id) return;
     try {
-      await updateReportStatus({ docId: selectedRow.id, status: "responded" });
+      await updateReportStatus({
+        docId: selectedRow.id,
+        status: "responded",
+        respondedBy: {
+          userId: user?.uid,
+          userName: userDoc?.firstName || user?.displayName || "Unknown",
+          email: user?.email,
+          respondedAt: new Date(),
+          timestamp: new Date(),
+        },
+      });
       setSelectedRows([]);
       fetchData();
     } catch (error) {
@@ -98,7 +120,17 @@ function Report() {
     try {
       await Promise.all(
         [...selectedRows.ids].map((id) =>
-          updateReportStatus({ docId: id, status: "ignored" })
+          updateReportStatus({
+            docId: id,
+            status: "ignored",
+            ignoredBy: {
+              userId: user?.uid,
+              userName: userDoc?.firstName || user?.displayName || "Unknown",
+              email: user?.email,
+              ignoredAt: new Date(),
+              timestamp: new Date(),
+            },
+          })
         )
       );
       setSelectedRows([]);
@@ -111,7 +143,17 @@ function Report() {
   const handleIgnoreRow = async () => {
     if (!selectedRow.id) return;
     try {
-      await updateReportStatus({ docId: selectedRow.id, status: "ignored" });
+      await updateReportStatus({
+        docId: selectedRow.id,
+        status: "ignored",
+        ignoredBy: {
+          userId: user?.uid,
+          userName: userDoc?.firstName || user?.displayName || "Unknown",
+          email: user?.email,
+          ignoredAt: new Date(),
+          timestamp: new Date(),
+        },
+      });
       setSelectedRows([]);
       fetchData();
     } catch (error) {
@@ -214,20 +256,6 @@ function Report() {
         if (params.row.isLoading)
           return <Skeleton variant="circular" width={8} height={8} />;
         return (
-          // <span style={{ display: "flex", alignItems: "center" }}>
-          //   <span
-          //     style={{
-          //       width: 8,
-          //       height: 8,
-          //       borderRadius: "50%",
-          //       backgroundColor: params.row
-          //         ? getTierColor(params.row)
-          //         : "#666666",
-          //       marginRight: 4,
-          //     }}
-          //   ></span>
-          //   {params.value}
-          // </span>
           <Box sx={{
               flexGrow: 1,
               display: "flex",
@@ -266,6 +294,32 @@ function Report() {
         if (params.row.isLoading)
           return <Skeleton variant="text" width="60%" />;
         return params.value;
+      },
+    },
+    {
+      field: "respondedBy",
+      headerName: "Responded By",
+      flex: 1.5,
+      renderCell: (params) => {
+        if (params.row.isLoading)
+          return <Skeleton variant="text" width="70%" />;
+        if (params.row.status?.toLowerCase() === "responded" && params.row.respondedBy?.userName) {
+          return params.row.respondedBy.userName;
+        }
+        return "-";
+      },
+    },
+    {
+      field: "ignoredBy",
+      headerName: "Ignored By",
+      flex: 1.5,
+      renderCell: (params) => {
+        if (params.row.isLoading)
+          return <Skeleton variant="text" width="70%" />;
+        if (params.row.status?.toLowerCase() === "ignored" && params.row.ignoredBy?.userName) {
+          return params.row.ignoredBy.userName;
+        }
+        return "-";
       },
     },
     {

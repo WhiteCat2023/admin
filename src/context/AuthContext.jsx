@@ -32,8 +32,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    console.log("User role updated:", role);
-  }, [role]);
+    console.log("User role updated:", userDoc);
+  }, [userDoc]);
 
   const refetchUserDoc = async () => {
     if (user) {
@@ -45,12 +45,20 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const clearSession = () => {
+    setUser(null);
+    setUserDoc(null);
+    setRole(null);
+    setLoading(false);
+  };
+
   const value = {
     user,
     loading,
     userDoc,
     role, // Expose the role
     refetchUserDoc,
+    clearSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

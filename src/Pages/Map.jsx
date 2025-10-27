@@ -28,14 +28,106 @@ import { HttpStatus } from "../utils/enums/status";
 import { getTierColor } from "../utils/helpers";
 import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBXEUzzVkNk1BpBESFqbftnG6Om66vNPY0";
-const GOOGLE_MAPS_ID = "b183e79aec18c6128664e1b8";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_ID = import.meta.env.VITE_GOOGLE_MAPS_ID;
+
+function ReportListItem({ item, isSelected, onCardClick }) {
+  const formattedDate = item.timestamp?.toDate
+    ? format(item.timestamp.toDate(), "MMM d | h:mma")
+    : "";
+
+  return (
+    <Card
+      key={item.id}
+      sx={{
+        mb: 1,
+        borderRadius: 2,
+        cursor: "pointer",
+        border: isSelected ? "3px solid #34A853" : "1px solid #34A853",
+        backgroundColor: isSelected ? "#e5fcebff" : "white",
+      }}
+      elevation={0}
+      onClick={() => onCardClick(item)}
+    >
+      <CardActionArea>
+        <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
+          <Divider
+            orientation="vertical"
+            sx={{
+              height: 70, // Match the text height
+              borderRightWidth: 3, // Thicker line
+              borderColor: "#34A853", // Color
+              borderRadius: 2,
+              mr: 2, // More margin for better spacing
+            }}
+          />
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            <Box>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                fontWeight={700}
+                fontSize={16}
+              >
+                {item.title}
+              </Typography>
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                fontSize={12}
+              >
+                {formattedDate}
+              </Typography>
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                fontSize={12}
+              >
+                Status: {item.status}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography
+                variant="body1"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                fontSize={12}
+              >
+                <Typography
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: getTierColor(item),
+                    marginRight: 1,
+                    verticalAlign: "middle",
+                  }}
+                ></Typography>
+                {item.tier}
+              </Typography>
+            </Box>
+          </Box>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  );
+}
 
 function Map() {
   const [reports, setReports] = useState([]);
   const [showContent, setShowContent] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("Pending");
   const mapRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -44,6 +136,11 @@ function Map() {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleFilterClick = (status) => {
+    setFilterStatus(status);
+    handleClose();
   };
 
   useEffect(() => {
@@ -77,109 +174,19 @@ function Map() {
     }
   };
 
-  const renderListItem = (item) => {
-    const formattedDate = item.timestamp?.toDate
-      ? format(item.timestamp.toDate(), "MMM d | h:mma")
-      : "";
-    const isSelected = selectedItem && selectedItem.id === item.id;
-    return (
-      <Card
-        key={item.id}
-        sx={{
-          mb: 1,
-          borderRadius: 2,
-          cursor: "pointer",
-          border: isSelected ? "3px solid #34A853" : "1px solid #34A853",
-          backgroundColor: isSelected ? "#e5fcebff" : "white",
-        }}
-        elevation={0}
-        onClick={() => handleCardClick(item)}
-      >
-        <CardActionArea>
-          <CardContent sx={{ display: "flex", alignItems: "center", p: 2 }}>
-            <Divider
-              orientation="vertical"
-              sx={{
-                height: 70, // Match the text height
-                borderRightWidth: 3, // Thicker line
-                borderColor: "#34A853", // Color
-                borderRadius: 2,
-                mr: 2, // More margin for better spacing
-              }}
-            />
-            <Box
-              sx={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 2,
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  fontWeight={700}
-                  fontSize={16}
-                >
-                  {item.title}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  fontSize={12}
-                >
-                  {formattedDate}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  fontSize={12}
-                >
-                  Status: {item.status}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                  fontSize={12}
-                >
-                  <Typography
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      backgroundColor: getTierColor(item),
-                      marginRight: 1,
-                      verticalAlign: "middle",
-                    }}
-                  ></Typography>
-                  {item.tier}
-                </Typography>
-              </Box>
-            </Box>
-          </CardContent>
-        </CardActionArea>
-      </Card>
-    );
-  };
-
   const filteredReports = useMemo(
     () =>
       reports.filter(
         (report) =>
-          (report.title || "")
+          (filterStatus === "All" || report.status === filterStatus) &&
+          ((report.title || "")
             .toLowerCase()
             .includes(searchText.toLowerCase()) ||
-          (report.description || "")
-            .toLowerCase()
-            .includes(searchText.toLowerCase())
+            (report.description || "")
+              .toLowerCase()
+              .includes(searchText.toLowerCase()))
       ),
-    [reports, searchText]
+    [reports, searchText, filterStatus]
   );
 
   function Direction({ selectedItem }) {
@@ -307,7 +314,7 @@ function Map() {
       </Box>
     );
   }
-  
+
   return (
     <Fade in={showContent} timeout={600}>
       <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -419,9 +426,10 @@ function Map() {
                     transformOrigin={{ horizontal: "right", vertical: "top" }}
                     anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                   >
-                    <MenuItem onClick={handleClose}>All</MenuItem>
-                    <MenuItem onClick={handleClose}>Responded</MenuItem>
-                    <MenuItem onClick={handleClose}>Ignored</MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("All")}>All</MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("Pending")}>Pending</MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("Responded")}>Responded</MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("Ignored")}>Ignored</MenuItem>
                   </Menu>
                 </Box>
               </Box>
@@ -435,13 +443,14 @@ function Map() {
                   No reports available
                 </Typography>
               ) : (
-                filteredReports.map((item) => {
-                  const formattedDate = item.timestamp?.toDate
-                    ? format(item.timestamp.toDate(), "hh:mma - MMM d")
-                    : "";
-
-                  return renderListItem(item);
-                })
+                filteredReports.map((item) => (
+                  <ReportListItem
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedItem && selectedItem.id === item.id}
+                    onCardClick={handleCardClick}
+                  />
+                ))
               )}
             </Box>
 

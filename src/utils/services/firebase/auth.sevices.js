@@ -127,5 +127,38 @@ export async function changeEmail(currentEmail, currentPassword, newEmail) {
   }
 }
 
+/**
+ * Deletes the user account with verification.
+ * Requires reauthentication with current password for security.
+ *
+ * @param {string} password - Current password for verification
+ * @returns {Promise<void>}
+ */
+export async function deleteUserAccount(password) {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("No user is currently signed in");
+    }
+
+    const email = user.email;
+
+    // Create credential for reauthentication
+    const credential = EmailAuthProvider.credential(email, password);
+
+    // Reauthenticate the user
+    await reauthenticateWithCredential(user, credential);
+
+    // Delete the user account
+    await user.delete();
+
+    console.log("User account deleted successfully");
+  } catch (error) {
+    console.error(`Account deletion error: ${error.code} - ${error.message}`);
+    throw error;
+  }
+}
+
 
 

@@ -16,13 +16,14 @@ import { useAuth } from "../context/AuthContext";
 import { getInitials } from "../utils/helpers";
 import { updateProfilePicture, updateCoverPhoto } from "../utils/controller/users.controller";
 import Swal from 'sweetalert2';
-
+import { useNavigate } from "react-router-dom";
 function Profile() {
   const [showContent, setShowContent] = useState(true);
   const [value, setValue] = useState(0);
   const [openProfilePicModal, setOpenProfilePicModal] = useState(false);
   const [openCoverPhotoModal, setOpenCoverPhotoModal] = useState(false);
   const { userDoc, refetchUserDoc } = useAuth();
+  const navigate = useNavigate();
 
   const handleTabChange = (event, newValue) => {
     setValue(newValue);

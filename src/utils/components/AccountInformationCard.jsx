@@ -27,8 +27,10 @@ import { updateUserName } from "../services/firebase/users.services";
 import { updateName } from "../controller/users.controller";
 import { updatePassword, updateEmail } from "../controller/auth.controller";
 import Swal from 'sweetalert2';
+import { useNavigate } from "react-router-dom";
+import { deleteUserAccount } from "../services/firebase/auth.sevices";
 
-function AccountInformationCard({ userDoc }) {
+function AccountInformationCard({ userDoc, onDeleteAccount }) {
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -47,6 +49,7 @@ function AccountInformationCard({ userDoc }) {
   const [editingField, setEditingField] = useState("");
   const [editingValue, setEditingValue] = useState("");
   const { refetchUserDoc } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setFirstName(userDoc?.firstName || "")
@@ -126,7 +129,84 @@ function AccountInformationCard({ userDoc }) {
     }
   };
 
-  const handleOpenDeleteModal = () => setOpenDeleteModal(true);
+  const handleDeleteAccountClick = async () => {
+    const confirmed = await Swal.fire({
+      title: "Delete Account?",
+      text: "This action cannot be undone. All your data will be permanently deleted.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d32f2f",
+      cancelButtonColor: "#757575",
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmed.isConfirmed) return;
+
+    const passwordPrompt = await Swal.fire({
+      title: "Confirm Your Password",
+      text: "Enter your password to verify your identity and delete your account",
+      input: "password",
+      inputPlaceholder: "Enter your password",
+      showCancelButton: true,
+      confirmButtonColor: "#d32f2f",
+      cancelButtonColor: "#757575",
+      confirmButtonText: "Delete Account",
+      cancelButtonText: "Cancel",
+      inputAttributes: {
+        autocapitalize: "off",
+        autocorrect: "off",
+      },
+      didOpen: () => {
+        Swal.getInput().focus();
+      },
+      inputValidator: (value) => {
+        if (!value) {
+          return "Password is required";
+        }
+      },
+    });
+
+    if (!passwordPrompt.isConfirmed || !passwordPrompt.value) return;
+
+    // Show loading state while deleting
+    await Swal.fire({
+      title: "Deleting Account",
+      text: "Please wait while we delete your account...",
+      icon: "info",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: async () => {
+        Swal.showLoading();
+      },
+    });
+
+    try {
+      await deleteUserAccount(passwordPrompt.value);
+      
+      await Swal.fire({
+        title: "Account Deleted",
+        text: "Your account has been successfully deleted. Redirecting to login...",
+        icon: "success",
+        confirmButtonColor: "#34A853",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      });
+      
+      navigate("/login");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      await Swal.fire({
+        title: "Error!",
+        text: error.message || "Failed to delete account. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#34A853",
+      });
+    }
+  };
+
+  const handleOpenDeleteModal = () => handleDeleteAccountClick();
+
   const handleCloseDeleteModal = () => setOpenDeleteModal(false);
   const handleConfirmDelete = () => {
     // TODO: Implement delete account logic
@@ -583,7 +663,7 @@ function AccountInformationCard({ userDoc }) {
         </Typography>
         <Typography variant="body2">
           If you want to delete your account, you can do so below by clicking
-          the <strong>“Delete Account Button”</strong>.
+          the <strong>"Delete Account Button"</strong>.
         </Typography>
 
         <Button

@@ -3,9 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { db } from '../../utils/config/firebase'
 import { doc, getDoc, collection, onSnapshot, addDoc, deleteDoc, serverTimestamp, increment, updateDoc, setDoc } from 'firebase/firestore'
-import { Box, Typography, Button, Card, CardContent, TextField, Stack, Avatar, IconButton, Paper, Container, Fade, Divider, Menu, MenuItem } from '@mui/material'
-import { ArrowBack, Delete, Send, MoreVert, ThumbUp, ThumbUpOffAlt } from '@mui/icons-material'
-import { formatTimeAgo, getInitials } from '../../utils/helpers'
+import { Box, Typography, Button, Container, Fade, Paper, Stack } from '@mui/material'
+import { ArrowBack } from '@mui/icons-material'
+import PostCard from '../../utils/components/PostCard'
+import CommentForm from '../../utils/components/CommentForm'
+import CommentItem from '../../utils/components/CommentItem'
 
 function ForumPost() {
   const { id } = useParams()
@@ -20,19 +22,12 @@ function ForumPost() {
   const [commentMenuAnchor, setCommentMenuAnchor] = useState(null)
   const [selectedCommentId, setSelectedCommentId] = useState(null)
 
-  // new state for replies
   const [repliesMap, setRepliesMap] = useState({}) // { commentId: { top: [...], children: { parentReplyId: [...] } } }
-  // replyTarget tracks where we're replying: { commentId, parentReplyId|null }
   const [replyTarget, setReplyTarget] = useState(null)
   const [replyText, setReplyText] = useState("")
-
-  // new state for likes
   const [likedComments, setLikedComments] = useState({}) // { commentId: true/false }
-  // likes for replies keyed by `${commentId}_${replyId}`
   const [likedReplies, setLikedReplies] = useState({}) // { "commentId_replyId": true/false }
-  // per-comment replies visibility (Replies button)
   const [repliesVisible, setRepliesVisible] = useState({}) // { commentId: true/false }
-  // per-reply (children) visibility keyed by `${commentId}_${replyId}`
   const [replyChildrenVisible, setReplyChildrenVisible] = useState({}) // { "commentId_replyId": true/false }
   
   // helper: total replies count for a comment (top + children)
@@ -442,8 +437,6 @@ function ForumPost() {
     )
   }
 
-  const postTimestamp = post.timestamp?.toDate ? post.timestamp.toDate() : new Date()
-
   return (
     <Fade in={showContent} timeout={600}>
       <Box sx={{ flexGrow: 1, p: 3, minHeight: "100vh" }}>
@@ -463,109 +456,13 @@ function ForumPost() {
         </Button>
 
         {/* Post Card */}
-        <Card
-          sx={{
-            p: 3,
-            mb: 4,
-            borderRadius: "8px",
-            border: "1px solid #e0e0e0",
-            bgcolor: "#fff",
-          }}
-          elevation={0}
-        >
-          <CardContent sx={{ p: 0 }}>
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                mb: 2,
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-              }}
-            >
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Avatar
-                  src={post.authorPhoto}
-                  alt={post.authorName}
-                  sx={{ width: 52, height: 52, bgcolor: "#2ED573" }}
-                />
-                <Box>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: 600, color: "#1a1a1a" }}
-                  >
-                    {post.authorName}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: "#999" }}>
-                    {formatTimeAgo(postTimestamp)}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Post Menu Button */}
-              <Box>
-                <IconButton
-                  size="small"
-                  onClick={handlePostMenuOpen}
-                  sx={{
-                    color: "#999",
-                    "&:hover": { bgcolor: "rgba(46, 213, 115, 0.08)" },
-                  }}
-                >
-                  <MoreVert fontSize="small" />
-                </IconButton>
-                <Menu
-                  anchorEl={postMenuAnchor}
-                  open={Boolean(postMenuAnchor)}
-                  onClose={handlePostMenuClose}
-                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  transformOrigin={{ vertical: "top", horizontal: "right" }}
-                >
-                  <MenuItem
-                    onClick={handleDeletePost}
-                    sx={{ color: "#ff4444" }}
-                  >
-                    <Delete fontSize="small" sx={{ mr: 1 }} />
-                    Delete
-                  </MenuItem>
-                </Menu>
-              </Box>
-              
-            </Box>
-
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: 600, mb: 2, color: "#1a1a1a", lineHeight: 1.4 }}
-            >
-              {post.title}
-            </Typography>
-
-            <Typography
-              variant="body1"
-              sx={{
-                mb: 3,
-                whiteSpace: "pre-wrap",
-                color: "#333",
-                lineHeight: 1.6,
-              }}
-            >
-              {post.content}
-            </Typography>
-
-            <Divider sx={{ my: 2, borderColor: "#e0e0e0" }} />
-
-            <Stack direction="row" spacing={3}>
-              <Typography variant="body2" sx={{ color: "#666" }}>
-                <strong style={{ color: "#1a1a1a" }}>Likes:</strong>{" "}
-                {post.likesCount || 0}
-              </Typography>
-              <Typography variant="body2" sx={{ color: "#666" }}>
-                <strong style={{ color: "#1a1a1a" }}>Comments:</strong>{" "}
-                {post.commentsCount || 0}
-              </Typography>
-            </Stack>
-          </CardContent>
-        </Card>
+        <PostCard
+          post={post}
+          onMenuOpen={handlePostMenuOpen}
+          menuAnchor={postMenuAnchor}
+          onMenuClose={handlePostMenuClose}
+          onDelete={handleDeletePost}
+        />
 
         {/* Comments Section */}
         <Paper
@@ -586,56 +483,13 @@ function ForumPost() {
           </Typography>
 
           {/* Add Comment Form */}
-          {user && (
-            <Box
-              sx={{
-                mb: 3,
-                p: 2.5,
-                bgcolor: "#fafafa",
-                borderRadius: "8px",
-                border: "1px solid #e0e0e0",
-              }}
-            >
-              <TextField
-                fullWidth
-                placeholder="Write a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                multiline
-                rows={2}
-                sx={{
-                  mb: 1.5,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "6px",
-                    "& fieldset": { borderColor: "#e0e0e0" },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#2ED573",
-                      borderWidth: "2px",
-                    },
-                  },
-                }}
-              />
-              <Button
-                variant="contained"
-                endIcon={<Send />}
-                onClick={addComment}
-                disabled={!newComment.trim()}
-                sx={{
-                  backgroundColor: "#2ED573",
-                  color: "#fff",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  borderRadius: "6px",
-                  "&:hover": { backgroundColor: "#26c061" },
-                  "&:disabled": { bgcolor: "#ddd", color: "#999" },
-                }}
-              >
-                Post Comment
-              </Button>
-            </Box>
-          )}
-
-          {!user && (
+          {user ? (
+            <CommentForm
+              value={newComment}
+              onChange={setNewComment}
+              onSubmit={addComment}
+            />
+          ) : (
             <Paper
               sx={{
                 p: 2,
@@ -652,232 +506,44 @@ function ForumPost() {
             </Paper>
           )}
 
-          {/* Comments List */}
           <Stack spacing={2}>
             {comments.length > 0 ? (
-              comments.map((comment) => {
-                const commentTimestamp = comment.timestamp?.toDate
-                  ? comment.timestamp.toDate()
-                  : new Date();
-                return (
-                  <Card
-                    key={comment.id}
-                    sx={{
-                      p: 2.5,
-                      borderRadius: "8px",
-                      border: "1px solid #e0e0e0",
-                      bgcolor: "#fff",
-                    }}
-                    elevation={0}
-                  >
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                      <Avatar
-                        src={comment.authorPhoto}
-                        alt={comment.authorName}
-                        sx={{ width: 40, height: 40, bgcolor: "#2ED573" }}
-                      >
-                        {getInitials(comment.authorFirstName)}
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                          }}
-                        >
-                          <Box>
-                            <Typography
-                              variant="subtitle2"
-                              sx={{ fontWeight: 600, color: "#1a1a1a" }}
-                            >
-                              {comment.authorName}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              sx={{ color: "#999" }}
-                            >
-                              {formatTimeAgo(commentTimestamp)}
-                            </Typography>
-                          </Box>
-
-                          {/* Comment Menu Button */}
-                          <Box>
-                            <IconButton
-                              size="small"
-                              onClick={(e) =>
-                                handleCommentMenuOpen(e, comment.id)
-                              }
-                              sx={{
-                                color: "#999",
-                                "&:hover": {
-                                  bgcolor: "rgba(46, 213, 115, 0.08)",
-                                },
-                              }}
-                            >
-                              <MoreVert fontSize="small" />
-                            </IconButton>
-                            <Menu
-                              anchorEl={commentMenuAnchor}
-                              open={
-                                Boolean(commentMenuAnchor) &&
-                                selectedCommentId === comment.id
-                              }
-                              onClose={handleCommentMenuClose}
-                              anchorOrigin={{
-                                vertical: "bottom",
-                                horizontal: "right",
-                              }}
-                              transformOrigin={{
-                                vertical: "top",
-                                horizontal: "right",
-                              }}
-                            >
-                              <MenuItem
-                                onClick={handleDeleteComment}
-                                sx={{ color: "#ff4444" }}
-                              >
-                                <Delete fontSize="small" sx={{ mr: 1 }} />
-                                Delete
-                              </MenuItem>
-                            </Menu>
-                          </Box>
-                        </Box>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            mt: 1,
-                            whiteSpace: "pre-wrap",
-                            color: "#333",
-                            lineHeight: 1.5,
-                          }}
-                        >
-                          {comment.text}
-                        </Typography>
-
-                        {/* Replies toggle button (per comment) */}
-                        {countReplies(comment.id) > 0 && (
-                          <Box sx={{ mt: 1 }}>
-                            <Button
-                              size="small"
-                              onClick={() =>
-                                setRepliesVisible((prev) => ({ ...prev, [comment.id]: !prev[comment.id] }))
-                              }
-                              sx={{ textTransform: "none", color: "#2ED573", fontWeight: 600, mb: 1 }}
-                            >
-                              {repliesVisible[comment.id] ? `Hide Replies (${countReplies(comment.id)})` : `Replies (${countReplies(comment.id)})`}
-                            </Button>
-                          </Box>
-                        )}
-
-                        {/* Top-level replies - shown when toggled visible for this comment */}
-                        {repliesVisible[comment.id] && repliesMap[comment.id] && Array.isArray(repliesMap[comment.id].top) && (
-                          <Box sx={{ mt: 2, pl: 6 }}>
-                            {repliesMap[comment.id].top.map((reply) => (
-                              <ReplyItem key={reply.id} commentId={comment.id} reply={reply} depth={0} />
-                            ))}
-                          </Box>
-                        )}
-
-                        {/* actions row: reply to comment and like */}
-                        <Box sx={{ display: "flex", gap: 1, mt: 1, alignItems: "center" }}>
-                          <Button
-                            size="small"
-                            onClick={() => {
-                              setReplyTarget((prev) => (prev && prev.commentId === comment.id && !prev.parentReplyId ? null : { commentId: comment.id, parentReplyId: null }))
-                              setReplyText("")
-                            }}
-                            sx={{
-                              textTransform: "none",
-                              color: "#2ED573",
-                              fontWeight: 600,
-                              "&:hover": { bgcolor: "transparent" },
-                            }}
-                          >
-                            Reply
-                          </Button>
-
-                          {/* NEW: Like button */}
-                          <Button
-                            size="small"
-                            onClick={() => toggleLike(comment.id)}
-                            startIcon={ likedComments[comment.id] ? <ThumbUp fontSize="small" /> : <ThumbUpOffAlt fontSize="small" /> }
-                            sx={{
-                              textTransform: "none",
-                              color: likedComments[comment.id] ? "#2ED573" : "#999",
-                              fontWeight: 600,
-                              "&:hover": { bgcolor: "transparent" },
-                            }}
-                          >
-                            {comment.likesCount || 0}
-                          </Button>
-                        </Box>
- 
-                        {/* inline reply editor for comment-level or reply-level targets */}
-                        {replyTarget && replyTarget.commentId === comment.id && (
-                          <Box sx={{ mt: 1, pl: 0 }}>
-                            <TextField
-                              fullWidth
-                              placeholder={replyTarget.parentReplyId ? "Write a reply to reply..." : "Write a reply..."}
-                              value={replyText}
-                              onChange={(e) => setReplyText(e.target.value)}
-                              multiline
-                              rows={2}
-                              sx={{
-                                mb: 1,
-                                "& .MuiOutlinedInput-root": {
-                                  borderRadius: "6px",
-                                  "& fieldset": { borderColor: "#e0e0e0" },
-                                  "&.Mui-focused fieldset": {
-                                    borderColor: "#2ED573",
-                                    borderWidth: "2px",
-                                  },
-                                },
-                              }}
-                            />
-                            <Box sx={{ display: "flex", gap: 1 }}>
-                              <Button
-                                variant="contained"
-                                endIcon={<Send />}
-                                onClick={() => addReply(comment.id, replyTarget.parentReplyId)}
-                                disabled={!replyText.trim()}
-                                sx={{
-                                  backgroundColor: "#2ED573",
-                                  color: "#fff",
-                                  fontWeight: 600,
-                                  textTransform: "none",
-                                  borderRadius: "6px",
-                                  "&:hover": { backgroundColor: "#26c061" },
-                                  "&:disabled": { bgcolor: "#ddd", color: "#999" },
-                                }}
-                              >
-                                Post Reply
-                              </Button>
-                              <Button
-                                variant="outlined"
-                                onClick={() => { setReplyTarget(null); setReplyText("") }}
-                                sx={{ textTransform: "none" }}
-                              >
-                                Cancel
-                              </Button>
-                            </Box>
-                          </Box>
-                        )}
- 
-                      </Box>
-                    </Box>
-                  </Card>
-                   );
-                 })
-               ) : (
-                 <Typography
-                   variant="body2"
-                   sx={{ color: "#999", textAlign: "center", py: 2 }}
-                 >
-                   No comments yet. Be the first to comment!
-                 </Typography>
-               )}
-             </Stack>
+              comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  forumId={id}
+                  repliesMap={repliesMap}
+                  replyTarget={replyTarget}
+                  replyText={replyText}
+                  likedComments={likedComments}
+                  likedReplies={likedReplies}
+                  repliesVisible={repliesVisible}
+                  replyChildrenVisible={replyChildrenVisible}
+                  countReplies={countReplies}
+                  onReplyTargetChange={setReplyTarget}
+                  onReplyTextChange={setReplyText}
+                  onToggleLike={toggleLike}
+                  onToggleLikeReply={toggleLikeReply}
+                  onAddReply={addReply}
+                  onSetRepliesVisible={setRepliesVisible}
+                  onSetReplyChildrenVisible={setReplyChildrenVisible}
+                  onMenuOpen={handleCommentMenuOpen}
+                  menuAnchor={commentMenuAnchor}
+                  onMenuClose={handleCommentMenuClose}
+                  selectedCommentId={selectedCommentId}
+                  onDelete={handleDeleteComment}
+                />
+              ))
+            ) : (
+              <Typography
+                variant="body2"
+                sx={{ color: "#999", textAlign: "center", py: 2 }}
+              >
+                No comments yet. Be the first to comment!
+              </Typography>
+            )}
+          </Stack>
         </Paper>
       </Box>
     </Fade>

@@ -104,6 +104,7 @@ export async function verifySOS(id, verificationInfo = {}) {
   if (!id) throw new Error("id required");
   const dRef = doc(db, "sos", id);
   await updateDoc(dRef, {
+    status: "verified",
     verified: true,
     verification: {
       ...verificationInfo,

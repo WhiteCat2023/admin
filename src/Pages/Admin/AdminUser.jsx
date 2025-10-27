@@ -226,6 +226,7 @@ function AdminUser() {
               sx={{
                 width: 300,
                 "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#fff",
                   borderRadius: "15px",
                   "&.Mui-focused fieldset": {
                     borderColor: "#2ED573",
