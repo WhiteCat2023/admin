@@ -29,7 +29,7 @@ import {
   Check as CheckIcon,
 } from "@mui/icons-material";
 import { fetchAdmins } from "../../utils/controller/users.controller";
-import { getAllAdminUsers } from "../../utils/services/firebase/users.services";
+import { getAllAdminUsers, updateAdminRestrictionStatus } from "../../utils/services/firebase/users.services";
 import { Navigate, useNavigate } from "react-router-dom";
 
 function AdminUser() {
@@ -83,10 +83,26 @@ function AdminUser() {
   };
 
   // Toggle restrict/unrestrict (super admin only)
-  const toggleRestrict = (id) => {
-    setAdminUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, restricted: !u.restricted } : u))
-    );
+  const toggleRestrict = async (id) => {
+    const userToUpdate = adminUsers.find((u) => u.id === id);
+    if (!userToUpdate) return;
+
+    const newRestrictedStatus = !userToUpdate.restricted;
+
+    try {
+      // Use the uid from the user document (Firebase UID), not the id
+      const firebaseUid = userToUpdate.uid || userToUpdate.id;
+      await updateAdminRestrictionStatus(firebaseUid, newRestrictedStatus);
+
+      // Update local state only after successful Firebase update
+      setAdminUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, restricted: newRestrictedStatus } : u))
+      );
+    } catch (error) {
+      console.error("Failed to update restriction status:", error);
+      // Optionally show user error message
+      alert("Failed to update restriction status. Please try again.");
+    }
   };
 
   const columns = [

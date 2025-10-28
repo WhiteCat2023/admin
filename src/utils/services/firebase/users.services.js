@@ -324,6 +324,19 @@ export async function createAdminUser({ name, email, role = "admin", password })
   return { ...profile, uid };
 }
 
+export const updateAdminRestrictionStatus = async (uid, restricted) => {
+  try {
+    if (!uid) throw new Error("UID is required");
+    const userRef = doc(db, "admin", uid);
+    await updateDoc(userRef, { 
+      restricted,
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error(`Error updating admin restriction status: ${error.message}`);
+    throw error;
+  }
+};
 
 
 
