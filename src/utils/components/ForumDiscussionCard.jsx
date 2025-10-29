@@ -97,6 +97,32 @@ function ForumDiscussionCard({
                 >
                   {discussion.authorName}
                 </Typography>
+                {discussion.isAdmin && (
+                  <Box
+                    component="span"
+                    sx={{
+                      display: "inline-block",
+                      mr: 1,
+                      backgroundColor: "#e6f4ea",
+                      borderRadius: "4px",
+                      px: 1,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#148f35ff",
+                        fontWeight: 600,
+                        display: "inline-block",
+                
+                        width: "inherit",
+                      }}
+                    >
+                      Admin
+                    </Typography>
+                  </Box>
+                )}
                 <Typography variant="caption" sx={{ color: "#000" }}>
                   {formatTimeAgo(timestamp, currentTime)}
                 </Typography>
