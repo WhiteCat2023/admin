@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
       if (currentUser) {
         const result = await getUserInfoFromFirestore(currentUser.uid);
         if (result.status === 200) {
-          console.log(result);
+          console.log(currentUser);
           setUserDoc(result.data);
           setRole(result.data.role); // Set the role from userDoc data
           setLoading(false);

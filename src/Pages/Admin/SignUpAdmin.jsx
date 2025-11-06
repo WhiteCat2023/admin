@@ -41,11 +41,17 @@ export default function SignUpAdmin() {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [termsError, setTermsError] = useState("");
 
-  // Email confirmation state
-  const [confirmEmailOpen, setConfirmEmailOpen] = useState(false);
-  const [confirmCode, setConfirmCode] = useState("");
-  const [createdEmail, setCreatedEmail] = useState("");
-  const [verifying, setVerifying] = useState(false);
+  const isError = !firstName.trim() ||
+      !lastName.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !confirm.trim() ||
+      firstNameError ||
+      lastNameError ||
+      emailError ||
+      passwordError ||
+      confirmPasswordError ||
+      termsError;
 
   // Validation functions
   const validateName = (name) => {
@@ -131,8 +137,6 @@ export default function SignUpAdmin() {
     setPassword("");
     setConfirm("");
     setAcceptedTerms(false);
-    setConfirmCode("");
-    setCreatedEmail("");
     setFirstNameError("");
     setLastNameError("");
     setEmailError("");
@@ -172,69 +176,31 @@ export default function SignUpAdmin() {
         : ""
     );
 
-    if (
-      !firstName.trim() ||
-      !lastName.trim() ||
-      !email.trim() ||
-      !password.trim() ||
-      !confirm.trim() ||
-      firstNameError ||
-      lastNameError ||
-      emailError ||
-      passwordError ||
-      confirmPasswordError ||
-      termsError
-    ) {
-      setLoading(false);
-      return;
-    }
-
+    if (isError) setLoading(false);
+    
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
       await createAdminUser({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         name: fullName,
         email: email.trim(),
         role,
         password,
       });
-      setCreatedEmail(email.trim());
-      setConfirmEmailOpen(true);
       Swal.fire({
         icon: "success",
         title: "Admin User Created",
         html: `A confirmation email has been sent to <strong>${email.trim()}</strong>. Please check your inbox and confirm your email address.`,
         confirmButtonText: "OK",
+      }).then(() => {
+        resetForm();
       });
     } catch (err) {
       console.error(err);
-      setSnack({ open: true, severity: "error", message: err?.message || "Failed to create admin user." });
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleConfirmEmail = async () => {
-    if (!confirmCode.trim()) {
-      setSnack({ open: true, severity: "error", message: "Please enter the confirmation code." });
-      return;
-    }
-    setVerifying(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setSnack({ open: true, severity: "success", message: "Admin email confirmed successfully! The admin can now log in." });
-      setConfirmEmailOpen(false);
-      resetForm();
-    } catch (err) {
-      console.error(err);
-      setSnack({ open: true, severity: "error", message: err?.message || "Failed to confirm email." });
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const handleCloseConfirmDialog = () => {
-    setConfirmEmailOpen(false);
-    setConfirmCode("");
   };
 
   return (
@@ -392,47 +358,6 @@ export default function SignUpAdmin() {
             </Button>
           </Box>
         </Box>
-
-        {/* Email Confirmation Dialog */}
-        <Dialog
-          open={confirmEmailOpen}
-          onClose={handleCloseConfirmDialog}
-          fullWidth
-          maxWidth="sm"
-        >
-          <DialogTitle>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Confirm Email Address
-            </Typography>
-          </DialogTitle>
-          <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              A confirmation code has been sent to{" "}
-              <strong>{createdEmail}</strong>. Please enter it below.
-            </Typography>
-            <TextField
-              label="Confirmation Code"
-              value={confirmCode}
-              onChange={(e) => setConfirmCode(e.target.value)}
-              placeholder="Enter 6-digit code"
-              fullWidth
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseConfirmDialog} disabled={verifying}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirmEmail}
-              variant="contained"
-              disabled={verifying}
-            >
-              {verifying ? "Verifying..." : "Verify"}
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Box>
     </Fade>
   );

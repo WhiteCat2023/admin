@@ -8,9 +8,9 @@ import {
   serverTimestamp,
   getDocs,
 } from "firebase/firestore";
-import { db, auth, storage } from "../../config/firebase";
+import { db, auth, storage, secondaryAuth } from "../../config/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 
 /**
  * This function can be use to make reference of documents in the firestore. It accepts a collection param and 
@@ -296,19 +296,21 @@ export async function updateCoverPhoto(credentials) {
  * (i.e. the current authenticated client must be allowed to create users).
  * In many setups this is performed by a backend (admin SDK) instead.
  */
-export async function createAdminUser({ name, email, role = "admin", password }) {
+export async function createAdminUser({ name, firstName, lastName, email, role = "admin", password }) {
   if (!email || !password) {
     throw new Error("Email and password are required to create an admin user.");
   }
 
   // create auth user
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
   const uid = userCredential.user.uid;
 
   // prepare profile
   const profile = {
     uid,
     name: name || "",
+    firstName: firstName || "",
+    lastName: lastName || "",
     email,
     role,
     online: false,
@@ -319,6 +321,8 @@ export async function createAdminUser({ name, email, role = "admin", password })
   // persist in Firestore under "admin/<uid>"
   const adminDocRef = doc(db, "admin", uid);
   await setDoc(adminDocRef, profile);
+  await sendEmailVerification(userCredential.user);
+  await signOut(secondaryAuth);
 
   // return profile with uid (createdAt will be a server timestamp sentinel)
   return { ...profile, uid };

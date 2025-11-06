@@ -18,6 +18,7 @@ import Link from "@mui/material/Link";
 import InputAdornment from "@mui/material/InputAdornment";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import Swal from "sweetalert2";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -64,7 +65,6 @@ function Login() {
     if (validateEmail(email) && validatePassword(password)) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
-
         window.location.href = "/";
       } catch (error) {
         // Show Firebase error
@@ -301,7 +301,7 @@ function Login() {
             >
               {loading ? "Signing In..." : "Sign In"}
             </Button>
-            <Divider sx={{ my: 2 }}>
+            {/* <Divider sx={{ my: 2 }}>
               <Typography variant="body2" color="textSecondary">
                 Or
               </Typography>
@@ -327,7 +327,7 @@ function Login() {
               onClick={() => (window.location.href = "/signup")}
             >
               Sign Up
-            </Button>
+            </Button> */}
           </form>
         </Paper>
       </Box>
