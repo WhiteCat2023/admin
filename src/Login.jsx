@@ -19,6 +19,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Swal from "sweetalert2";
+import { updateAdminActivity } from "./utils/services/firebase/users.services";
+import { useAuth } from "./context/AuthContext"
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -29,6 +31,17 @@ function Login() {
 
   // Simple email regex
   const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  const showError = (error) => {
+        if (
+          error.code === "auth/user-not-found" ||
+          error.code === "auth/wrong-password"
+        ) {
+          setPasswordError("Invalid email or password.");
+        } else {
+          setPasswordError(error.message);
+        }
+      }
 
   // Password: min 8 chars, at least one letter, one number, and one special character
   const validatePassword = (value) =>
@@ -65,17 +78,11 @@ function Login() {
     if (validateEmail(email) && validatePassword(password)) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
+        // signInUser(email, password);
         window.location.href = "/";
       } catch (error) {
         // Show Firebase error
-        if (
-          error.code === "auth/user-not-found" ||
-          error.code === "auth/wrong-password"
-        ) {
-          setPasswordError("Invalid email or password.");
-        } else {
-          setPasswordError(error.message);
-        }
+        showError(error);
       } finally {
         setLoading(false);
       }

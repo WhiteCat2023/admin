@@ -342,6 +342,21 @@ export const updateAdminRestrictionStatus = async (uid, restricted) => {
   }
 };
 
+export const updateAdminActivity = async (uid, online) => {
+  try {
+    if (!uid) throw new Error("UID is required");
+    const userRef = doc(db, "admin", uid);
+    await updateDoc(userRef, { 
+      online,
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error(`Error updating admin activity: ${error.message}`);
+    throw error;
+  }
+};
+
+
 
 
 

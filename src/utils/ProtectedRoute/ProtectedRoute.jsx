@@ -1,10 +1,11 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { CircleLoader } from "react-spinners";
 import Swal from "sweetalert2";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import { updateAdminActivity } from "../services/firebase/users.services";
 
 function  ProtectedRoute() {
   const [user, setUser] = useState(null);
@@ -24,13 +25,20 @@ function  ProtectedRoute() {
       setUser(firebaseUser); // Firebase restores session here
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      updateAdminActivity(user?.uid, true);
+    } 
+  }, [user]);
 
   if (loading) {
     return <CircleLoader cssOverride={override} />;
   }
+
+
 
   // if (!user) {
   //   // 🚫 no replace → user can still go back after logging in

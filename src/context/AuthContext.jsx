@@ -19,7 +19,6 @@ export function AuthProvider({ children }) {
       if (currentUser) {
         const result = await getUserInfoFromFirestore(currentUser.uid);
         if (result.status === 200) {
-          console.log(currentUser);
           setUserDoc(result.data);
           setRole(result.data.role); // Set the role from userDoc data
           setLoading(false);
@@ -30,10 +29,6 @@ export function AuthProvider({ children }) {
 
     return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    console.log("User role updated:", userDoc);
-  }, [userDoc]);
 
   const refetchUserDoc = async () => {
     if (user) {

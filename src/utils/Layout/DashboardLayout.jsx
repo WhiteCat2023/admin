@@ -27,6 +27,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import { Sos } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
+import { updateAdminActivity } from "../services/firebase/users.services";
 
 function DashboardLayout({ children }) {
   const location = useLocation();
@@ -86,6 +87,7 @@ function DashboardLayout({ children }) {
 
   const handleLogout = async () => {
     try {
+      await updateAdminActivity(userDoc?.id, false);
       await signOut(auth);
       navigate("/login"); // ✅ redirect to login after logout
     } catch (error) {
