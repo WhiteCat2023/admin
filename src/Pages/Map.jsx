@@ -127,7 +127,7 @@ function Map() {
   const [showContent, setShowContent] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
-  const [filterStatus, setFilterStatus] = useState("Pending");
+  const [filterStatus, setFilterStatus] = useState("pending");
   const mapRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -427,9 +427,9 @@ function Map() {
                     anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                   >
                     <MenuItem onClick={() => handleFilterClick("All")}>All</MenuItem>
-                    <MenuItem onClick={() => handleFilterClick("Pending")}>Pending</MenuItem>
-                    <MenuItem onClick={() => handleFilterClick("Responded")}>Responded</MenuItem>
-                    <MenuItem onClick={() => handleFilterClick("Ignored")}>Ignored</MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("pending")}>Pending</MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("responded")}>Responded</MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("ignored")}>Ignored</MenuItem>
                   </Menu>
                 </Box>
               </Box>
