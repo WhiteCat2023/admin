@@ -52,10 +52,10 @@ function Sos() {
       await navigator.clipboard.writeText(
         JSON.stringify(selectedRowForData, null, 2)
       );
-      await Swal.fire({ icon: "success", title: "Copied to clipboard" });
+      await Swal.fire({ icon: "success", title: "Copied to clipboard", topLayer: true });
     } catch (e) {
       console.error(e);
-      await Swal.fire({ icon: "error", title: "Copy failed" });
+      await Swal.fire({ icon: "error", title: "Copy failed", topLayer: true });
     }
   };
 
@@ -154,6 +154,7 @@ function Sos() {
       await Swal.fire({
         icon: "warning",
         title: "No verified SOS to respond to",
+        topLayer: true,
       });
       return;
     }
@@ -162,6 +163,7 @@ function Sos() {
       title: "Start response for all verified SOS?",
       text: `This will start response for ${verifiedRows.length} verified SOS reports`,
       icon: "question",
+      topLayer: true,
       showCancelButton: true,
       confirmButtonText: "Start Bulk Response",
     });
@@ -203,6 +205,7 @@ function Sos() {
         icon: successCount > 0 ? "success" : "error",
         title: "Bulk Response Complete",
         text: `Started: ${successCount}, Failed: ${failCount}`,
+        topLayer: true,
       });
     } catch (e) {
       console.error(e);
@@ -210,6 +213,7 @@ function Sos() {
         icon: "error",
         title: "Bulk action failed",
         text: e?.message ?? String(e),
+        topLayer: true,
       });
     }
   };
@@ -219,6 +223,7 @@ function Sos() {
       await Swal.fire({
         icon: "warning",
         title: "No SOS selected",
+        topLayer: true,
       });
       return;
     }
@@ -230,6 +235,7 @@ function Sos() {
       showCancelButton: true,
       confirmButtonText: "Delete",
       confirmButtonColor: "#d32f2f",
+      topLayer: true,
     });
 
     if (!confirmed.isConfirmed) return;
@@ -250,6 +256,7 @@ function Sos() {
         icon: "success",
         title: "SOS deleted successfully",
         text: `Deleted ${selectedRows.ids?.size} records`,
+        topLayer: true,
       });
     } catch (e) {
       console.error(e);
@@ -257,6 +264,7 @@ function Sos() {
         icon: "error",
         title: "Delete failed",
         text: e?.message ?? String(e),
+        topLayer: true,
       });
     }
   };
@@ -391,7 +399,7 @@ function Sos() {
           />
         </Box>
 
-        <Box sx={{ height: 600, width: "100%" }}>
+        <Box sx={{ height: "auto", width: "100%", overflow: "hidden" }}>
           <DataGrid
             showToolbar
             checkboxSelection
@@ -410,6 +418,7 @@ function Sos() {
               toolbar: renderToolbar,
             }}
             sx={{
+              height: "82dvh",
               "& .MuiDataGrid-columnHeaderTitle": {
                 fontWeight: 600,
               },

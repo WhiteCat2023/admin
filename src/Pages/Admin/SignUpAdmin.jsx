@@ -205,7 +205,7 @@ export default function SignUpAdmin() {
 
   return (
     <Fade in timeout={300}>
-      <Box sx={{ maxWidth: 600, mx: "auto", p: 3 }}>
+      <Box sx={{height: "100vh", maxWidth: 600, mx: "auto", p: 3 }}>
         {/* added back button next to title */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <IconButton

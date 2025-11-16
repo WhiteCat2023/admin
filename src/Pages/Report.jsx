@@ -548,8 +548,7 @@ function Report() {
               // autoHeight
               sx={{
                 border: 0,
-
-                height: 800,
+                height: "82vh",
                 minWidth: 700,
                 "& .MuiCheckbox-root": {
                   color: "#084518",

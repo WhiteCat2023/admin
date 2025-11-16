@@ -257,7 +257,7 @@ function AdminUser() {
         </Box>
 
         {/* DataGrid showing online admins */}
-        <Box sx={{ display: "flex", flexDirection: "column", height: "calc(100vh - 250px)" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", }}>
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
             {currentUser.role === "super" && (
               <Button
@@ -269,7 +269,7 @@ function AdminUser() {
               </Button>
             )}
           </Box>
-          <Box sx={{ flex: 1, width: "100%" }}>
+          <Box sx={{ height: "auto", width: "100%", overflow: "hidden" }}>
             <DataGrid
               rows={filtered}
               columns={columns}
@@ -282,7 +282,7 @@ function AdminUser() {
                 pagination: { paginationModel: { pageSize: 10, page: 0 } },
               }}
               sx={{
-                height: "100%",
+                height: "79dvh",
                 "& .MuiDataGrid-cell": {
                   display: "flex",
                   alignItems: "center",

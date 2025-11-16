@@ -139,6 +139,7 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
       cancelButtonColor: "#757575",
       confirmButtonText: "Delete",
       cancelButtonText: "Cancel",
+      topLayer: true,
     });
 
     if (!confirmed.isConfirmed) return;
@@ -153,6 +154,7 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
       cancelButtonColor: "#757575",
       confirmButtonText: "Delete Account",
       cancelButtonText: "Cancel",
+      topLayer: true,
       inputAttributes: {
         autocapitalize: "off",
         autocorrect: "off",
@@ -176,6 +178,7 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
       icon: "info",
       allowOutsideClick: false,
       allowEscapeKey: false,
+      topLayer: true,
       didOpen: async () => {
         Swal.showLoading();
       },
@@ -191,6 +194,7 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         confirmButtonColor: "#34A853",
         allowOutsideClick: false,
         allowEscapeKey: false,
+        topLayer: true,
       });
       
       navigate("/login");
@@ -201,6 +205,7 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         text: error.message || "Failed to delete account. Please try again.",
         icon: "error",
         confirmButtonColor: "#34A853",
+        topLayer: true,
       });
     }
   };
@@ -231,7 +236,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         title: 'Error!',
         text: 'User ID not available',
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#2ED573',
+        topLayer: true
       });
       return;
     }
@@ -251,7 +257,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
             title: 'Success!',
             text: 'First name updated successfully',
             icon: 'success',
-            confirmButtonColor: '#2ED573'
+            confirmButtonColor: '#2ED573',
+            topLayer: true
           });
         } catch (error) {
           console.error("Error updating first name:", error);
@@ -259,7 +266,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
             title: 'Error!',
             text: 'Error updating first name: ' + error.message,
             icon: 'error',
-            confirmButtonColor: '#2ED573'
+            confirmButtonColor: '#2ED573',
+            topLayer: true
           });
         }
         break;
@@ -273,7 +281,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
             title: 'Success!',
             text: 'Last name updated successfully',
             icon: 'success',
-            confirmButtonColor: '#2ED573'
+            confirmButtonColor: '#2ED573',
+            topLayer: true
           });
         } catch (error) {
           console.error("Error updating last name:", error);
@@ -281,7 +290,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
             title: 'Error!',
             text: 'Error updating last name: ' + error.message,
             icon: 'error',
-            confirmButtonColor: '#2ED573'
+            confirmButtonColor: '#2ED573',
+            topLayer: true
           });
         }
         break;
@@ -313,7 +323,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         title: 'Error!',
         text: 'User email not available',
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#2ED573',
+        topLayer: true,
       });
       return;
     }
@@ -323,7 +334,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         title: 'Error!',
         text: 'Password not available',
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#2ED573',
+        topLayer: true,
       });
       return;
     }
@@ -341,7 +353,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
           title: 'Success!',
           text: 'Email updated successfully',
           icon: 'success',
-          confirmButtonColor: '#2ED573'
+          confirmButtonColor: '#2ED573',
+          topLayer: true
         });
         setEmail(newEmail);
         setCurrentPassword("");
@@ -351,7 +364,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
           title: 'Error!',
           text: result.message || "Failed to update email",
           icon: 'error',
-          confirmButtonColor: '#2ED573'
+          confirmButtonColor: '#2ED573',
+          topLayer: true
         });
       }
     } catch (error) {
@@ -360,7 +374,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         title: 'Error!',
         text: "Error changing email: " + error.message,
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#2ED573',
+        topLayer: true
       });
     } finally {
       setLoading(false);
@@ -377,7 +392,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         title: 'Error!',
         text: 'User ID not available',
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#2ED573',
+        topLayer: true
       });
       return;
     }
@@ -390,7 +406,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         title: 'Error!',
         text: 'No file selected',
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#2ED573',
+        topLayer: true
       });
       return;
     }
@@ -405,14 +422,16 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
           title: 'Success!',
           text: 'Profile picture updated successfully',
           icon: 'success',
-          confirmButtonColor: '#2ED573'
+          confirmButtonColor: '#2ED573',
+          topLayer: true
         });
       } else {
         Swal.fire({
           title: 'Error!',
           text: result.message || "Failed to update profile picture",
           icon: 'error',
-          confirmButtonColor: '#2ED573'
+          confirmButtonColor: '#2ED573',
+          topLayer: true
         });
       }
     } catch (error) {
@@ -421,7 +440,8 @@ function AccountInformationCard({ userDoc, onDeleteAccount }) {
         title: 'Error!',
         text: "Error updating profile picture: " + error.message,
         icon: 'error',
-        confirmButtonColor: '#2ED573'
+        confirmButtonColor: '#2ED573',
+        topLayer: true
       });
     }
   };
