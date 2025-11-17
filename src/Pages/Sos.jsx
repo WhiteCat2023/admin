@@ -107,7 +107,7 @@ function Sos() {
           )
         );
 
-        await Swal.fire({ icon: "success", title: "Response finished" });
+        await Swal.fire({ icon: "success", title: "Response finished", topLayer: true });
       } else {
         await startResponse(selectedRowForData.id, {
           responderName: currentUser,
@@ -129,7 +129,7 @@ function Sos() {
           )
         );
 
-        await Swal.fire({ icon: "success", title: "Response started" });
+        await Swal.fire({ icon: "success", title: "Response started", topLayer: true });
       }
 
       closeDataModal();

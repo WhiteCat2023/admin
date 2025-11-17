@@ -45,8 +45,7 @@ function Login() {
 
   // Password: min 8 chars, at least one letter, one number, and one special character
   const validatePassword = (value) =>
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value);
-
+        /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(value);
   const handleEmailChange = (e) => {
     const value = e.target.value;
     setEmail(value);
@@ -60,7 +59,7 @@ function Login() {
     setPassword(value);
     setPasswordError(
       value && !validatePassword(value)
-        ? "Password must be at least 8 characters and contain a letter, a number, and a special character."
+        ? "Password must be at least 8 characters and contain a letter, and a number."
         : ""
     );
   };
@@ -71,7 +70,7 @@ function Login() {
     setEmailError(!validateEmail(email) ? "Enter a valid email address." : "");
     setPasswordError(
       !validatePassword(password)
-        ? "Password must be at least 8 characters and contain a letter, a number, and a special character."
+        ? "Password must be at least 8 characters and contain a letter, and a number."
         : ""
     );
 

@@ -45,6 +45,7 @@ function SosActionsMenu({ row, onViewData }) {
         icon: "error",
         title: "Action failed",
         text: e?.message ?? String(e),
+        topLayer: true,
       });
     }
   };
@@ -55,10 +56,11 @@ function SosActionsMenu({ row, onViewData }) {
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes",
+      topLayer: true,
     });
     if (!confirmed.isConfirmed) return;
     await verifySOS(id, { verifiedBy: userDoc?.name || "admin", method: "manual", verified: true });
-    await Swal.fire({ icon: "success", title: "Marked as verified" });
+    await Swal.fire({ icon: "success", title: "Marked as verified", topLayer: true });
   });
 
   const handleFalse = doCloseAnd(async () => {
@@ -67,11 +69,12 @@ function SosActionsMenu({ row, onViewData }) {
       input: "text",
       showCancelButton: true,
       inputPlaceholder: "Remarks",
+      topLayer: true,
     });
     if (!res.isConfirmed) return;
     const remarks = res.value ?? "";
     await markFalseAlarm(id, { remarks, actedBy: "admin" });
-    await Swal.fire({ icon: "success", title: "Marked false alarm" });
+    await Swal.fire({ icon: "success", title: "Marked false alarm", topLayer: true });
   });
 
   const handleNotify = doCloseAnd(async () => {
@@ -81,6 +84,7 @@ function SosActionsMenu({ row, onViewData }) {
       input: "text",
       showCancelButton: true,
       inputValue: defaultMsg,
+      topLayer: true,
     });
     if (!res.isConfirmed) return;
     const msg = res.value ?? "";
@@ -89,14 +93,14 @@ function SosActionsMenu({ row, onViewData }) {
       message: msg,
       meta: { sosRow: row },
     });
-    await Swal.fire({ icon: "success", title: "Notification queued (logged)." });
+    await Swal.fire({ icon: "success", title: "Notification queued (logged).", topLayer: true });
   });
 
   const handleCall = () => {
     handleClose();
     const contact = row?.contact ?? row?.phone;
     if (!contact) {
-      Swal.fire({ icon: "error", title: "No contact available" });
+      Swal.fire({ icon: "error", title: "No contact available", topLayer: true });
       return;
     }
     window.open(`tel:${contact}`);

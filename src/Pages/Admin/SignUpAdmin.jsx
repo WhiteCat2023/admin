@@ -193,6 +193,7 @@ export default function SignUpAdmin() {
         title: "Admin User Created",
         html: `A confirmation email has been sent to <strong>${email.trim()}</strong>. Please check your inbox and confirm your email address.`,
         confirmButtonText: "OK",
+        topLayer: true,
       }).then(() => {
         resetForm();
       });
