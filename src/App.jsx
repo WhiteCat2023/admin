@@ -18,6 +18,7 @@ import theme from "./utils/theme/theme.js";
 import { useEffect } from "react";
 import SignUpAdmin from "./Pages/Admin/SignUpAdmin.jsx";
 import Sos from "./Pages/Sos.jsx";
+import Cms from "./Pages/CMS/Cms.jsx";
 
 function App() {
   useEffect(() => {
@@ -74,6 +75,7 @@ function App() {
             { path: "profile", element: <Profile /> },
             { path: "/forum/:id", element: <ForumPost /> },
             { path: "admin-users", element: <AdminUser /> },
+            { path: "cms", element: <Cms /> },
             { path: "/admin-users/signup-admin", element: <SignUpAdmin /> },
             { path: "sos", element: <Sos /> }
           ],

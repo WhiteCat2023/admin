@@ -17,6 +17,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import MapIcon from "@mui/icons-material/Map";
 import AssessmentIcon from "@mui/icons-material/Assessment";
+import GavelIcon from '@mui/icons-material/Gavel';
 import ForumIcon from "@mui/icons-material/Forum";
 import Ariba from "../../assets/Ariba.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
@@ -48,15 +49,14 @@ function DashboardLayout({ children }) {
   ];
 
   // Admin Users only visible for super admin
-  const adminRoute = {
-    text: "Admin Users",
-    path: "admin-users",
-    icon: <PeopleAltIcon />,
-  };
+  const adminRoute = [
+    { text: "Admin Users", path: "admin-users", icon: <PeopleAltIcon />, },
+    { text: "CMS", path: "cms", icon: <GavelIcon /> },
+  ];
 
   const routes =
     userDoc?.role === "super"
-      ? [...baseRoutes.slice(0, -1), adminRoute, baseRoutes[baseRoutes.length - 1]]
+      ? [...baseRoutes.slice(0, -1), ...adminRoute, baseRoutes[baseRoutes.length - 1]]
       : baseRoutes;
 
   const getInitialIndex = () => {
