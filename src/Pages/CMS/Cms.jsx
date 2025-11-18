@@ -12,31 +12,45 @@ import {
   Menu,
   MenuItem,
   IconButton,
+  ListItem,
 } from "@mui/material";
+import ListItemCard from "./components/ListItemCard";
+import GavelIcon from '@mui/icons-material/Gavel';
 
 function Cms() {
+
+  const items = [
+    { 
+      title: "Terms and Conditions", 
+      path: "terms-and-conditions",
+      icon: <GavelIcon />
+    },
+  ]
+
   return (
     <Fade in={true} timeout={500}>
-        <Box sx={{height: "100dvh", p: 3 }}>
-            <Box
-            sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-            }}
-            >
-                <Typography
-                    variant="h2"
-                    sx={{ fontWeight: "bold", fontFamily: '"Poppins", sans-serif' }}
-                >
-                    CMS
-                </Typography>
-            </Box>
-            <Box>
-                
-            </Box>  
+      <Box sx={{ height: "100dvh", p: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{ fontWeight: "bold", fontFamily: '"Poppins", sans-serif' }}
+          >
+            CMS
+          </Typography>
         </Box>
+        <Box>
+          {items.map((item, index) => (
+            <ListItemCard key={index} item={item} />
+          ))}
+        </Box>
+      </Box>
     </Fade>
   )
 }

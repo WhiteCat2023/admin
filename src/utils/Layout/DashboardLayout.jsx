@@ -17,7 +17,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import MapIcon from "@mui/icons-material/Map";
 import AssessmentIcon from "@mui/icons-material/Assessment";
-import GavelIcon from '@mui/icons-material/Gavel';
 import ForumIcon from "@mui/icons-material/Forum";
 import Ariba from "../../assets/Ariba.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
@@ -29,6 +28,7 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import { Sos } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import { updateAdminActivity } from "../services/firebase/users.services";
+import AndroidIcon from '@mui/icons-material/Android';
 
 function DashboardLayout({ children }) {
   const location = useLocation();
@@ -51,7 +51,7 @@ function DashboardLayout({ children }) {
   // Admin Users only visible for super admin
   const adminRoute = [
     { text: "Admin Users", path: "admin-users", icon: <PeopleAltIcon />, },
-    { text: "CMS", path: "cms", icon: <GavelIcon /> },
+    { text: "CMS", path: "cms", icon: <AndroidIcon /> },
   ];
 
   const routes =
