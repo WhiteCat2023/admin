@@ -13,7 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import { serverTimestamp } from "firebase/firestore";
-import { newTermsAndConditions } from "../../service/cms.service";
+import { newTermsAndConditions, updateTermsAndConditions } from "../../service/cms.service";
 import { NewAlert } from "../alert/NewAlert";
 
 /**
@@ -26,7 +26,7 @@ import { NewAlert } from "../alert/NewAlert";
  * By: Berndt
  */
 
-export default function NewTermsModal({ open, handleClose, isEdit = null }) {
+export default function NewTermsModal({ open, handleClose, isEdit = null, editItem = null, setIsEdit }) {
 
     const {userDoc} = useAuth()
     const [input, setInput] = useState({
@@ -36,6 +36,24 @@ export default function NewTermsModal({ open, handleClose, isEdit = null }) {
         "tc_authorId": userDoc?.id,
         "tc_date": serverTimestamp(),
     });
+
+    useEffect(() => {
+        if (editItem && isEdit) {
+            setInput({
+                ...editItem,
+                "tc_author": userDoc?.name,
+                "tc_authorId": userDoc?.id,
+            });
+        } else {
+            setInput({
+                "tc_title": "",
+                "tc_content": "",
+                "tc_author": userDoc?.name,
+                "tc_authorId": userDoc?.id,
+                "tc_date": serverTimestamp(),
+            });
+        }
+    }, [editItem, open, userDoc]);
     
   // alert state
     const [alert, setAlert] = useState({
@@ -60,48 +78,58 @@ export default function NewTermsModal({ open, handleClose, isEdit = null }) {
         }));
     }
 
-    const handleSubmit = async (e) => {
+    const isThisEdited = async () => {
+        if (!isEdit) {
+            return await newTermsAndConditions(input);
+        } else{
+            return await updateTermsAndConditions(editItem.id, input);
+        }
+    }
+
+    const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
 
         if (!input.tc_title || !input.tc_content) {
-        setAlert({
-            open: true,
-            msg: "Please fill in all required fields.",
-            title: "Warning",
-            severity: "warning",
-        });
-        setLoading(false);
-        return;
+            setAlert({
+                open: true,
+                msg: "Please fill in all required fields.",
+                title: "Warning",
+                severity: "warning",
+            });
+            setLoading(false);
+            return;
         }
 
         try {
-        const res = await newTermsAndConditions(input);
-        if (res !== false) {
-            setAlert({
-            open: true,
-            msg: isEdit ? "Terms and Conditions updated successfully." : "Terms and Conditions added successfully.",
-            title: "Success",
-            severity: "success",
-            });
-        } else {
-            setAlert({
-            open: true,
-            msg: isEdit ? "Failed to update Terms and Conditions." : "Failed to add Terms and Conditions.",
-            title: "Error",
-            severity: "error",
-            });
-        }
+            const res = isThisEdited();
+            if (res !== false) {
+                isEdit ? console.log("Updated") : console.log("Created");
+                setIsEdit(false)
+                setAlert({
+                open: true,
+                msg: isEdit ? "Terms and Conditions updated successfully." : "Terms and Conditions added successfully.",
+                title: "Success",
+                severity: "success",
+                });
+            } else {
+                setAlert({
+                open: true,
+                msg: isEdit ? "Failed to update Terms and Conditions." : "Failed to add Terms and Conditions.",
+                title: "Error",
+                severity: "error",
+                });
+            }
         } catch (err) {
-        setAlert({
-            open: true,
-            msg: isEdit ? "Failed to update Terms and Conditions." : "Failed to add Terms and Conditions.",
-            title: "Error",
-            severity: "error",
-        });
+            setAlert({
+                open: true,
+                msg: isEdit ? "Failed to update Terms and Conditions." : "Failed to add Terms and Conditions.",
+                title: "Error",
+                severity: "error",
+            });
         } finally {
-        setLoading(false);
-        handleClose();
+            setLoading(false);
+            handleClose();
         }
     };
 
@@ -126,6 +154,7 @@ export default function NewTermsModal({ open, handleClose, isEdit = null }) {
                         type="text"
                         fullWidth
                         variant="standard"
+                        value={input.tc_title}
                         onChange={handleChange}
                     />
                     <TextField
@@ -141,6 +170,7 @@ export default function NewTermsModal({ open, handleClose, isEdit = null }) {
                         variant="standard"
                         multiline
                         rows={8}
+                        value={input.tc_content}
                         onChange={handleChange}
                         
                     />

@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, onSnapshot, updateDoc, } from "firebase/firestore";
+import { addDoc, collection, doc, onSnapshot, serverTimestamp, updateDoc, } from "firebase/firestore";
 import { db } from "../../../utils/config/firebase";
 
 export const newTermsAndConditions = async (termsData) => {

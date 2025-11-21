@@ -28,6 +28,10 @@ export default function TermsAndConditions() {
     getTermsAndConditions(setTerms);
   }, []);
 
+  useEffect(() => {
+    console.log(editItem)
+  }, [editItem]);
+
   const handleOpen = () => {
     setIsEdit(false);
     setOpen(true);
@@ -38,6 +42,7 @@ export default function TermsAndConditions() {
   }
 
   const handleEdit = (item) => {
+    setOpen(true);
     setIsEdit(true);
     setEditItem(item);
   }
@@ -104,7 +109,9 @@ export default function TermsAndConditions() {
     <NewTermsModal 
     open={open} 
     handleClose={handleClose}
-    isEdit={isEdit}/>
+    isEdit={isEdit}
+    editItem={editItem}
+    setIsEdit={setIsEdit}/>
     </>
   )
 }
