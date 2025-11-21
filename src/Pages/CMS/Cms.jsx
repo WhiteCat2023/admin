@@ -14,7 +14,7 @@ import {
   IconButton,
   ListItem,
 } from "@mui/material";
-import ListItemCard from "./components/ListItemCard";
+import ListItemCard from "./components/card/ListItemCard";
 import GavelIcon from '@mui/icons-material/Gavel';
 
 function Cms() {

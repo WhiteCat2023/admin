@@ -1,31 +1,21 @@
 import {
-  Box,
   Typography,
   Card,
   CardContent,
-  Divider,
-  Fade,
-  TextField,
-  InputAdornment,
   CardActionArea,
-  Button,
-  Menu,
-  MenuItem,
-  IconButton,
   Icon,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 function ListItemCard({ key, item }) {
+
   const navigate = useNavigate();
-  console.log("ListItemCard item:", item);
+
   return (
     <Card
     key={key}
     elevation={0}
-    shadow={0}
-      sx={{
-        }}>
+    shadow={0}>
       <CardActionArea
         onClick={() => navigate(item.path)}>  
         <CardContent
