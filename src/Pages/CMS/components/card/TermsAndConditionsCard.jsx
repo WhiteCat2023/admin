@@ -18,14 +18,14 @@ export function TermsAndConditionsCard({
   item,
   edit,
   deleteItem,
-  viewItem = () => {},
+  view,
 }) {
   return (
     <Card key={key} elevation={0} shadow={0} sx={{display: "flex"}}>
       <CardActionArea
         onClick={(e) => {
           e.stopPropagation();
-          viewItem(item);
+          view(item);
         }}
       >
         <CardContent

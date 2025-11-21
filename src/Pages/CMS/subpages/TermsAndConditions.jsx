@@ -14,6 +14,7 @@ import NewTermsModal from "../components/modal/NewTermsModal";
 import { useEffect, useState } from "react";
 import { deleteTermsAndConditions, getTermsAndConditions } from "../service/cms.service";
 import { TermsAndConditionsCard } from "../components/card/TermsAndConditionsCard";
+import ViewTermsModal from "../components/modal/ViewTermsModal";
 
 
 export default function TermsAndConditions() {
@@ -23,6 +24,8 @@ export default function TermsAndConditions() {
   const [terms, setTerms] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [viewItem, setViewItem] = useState(false);
 
   useEffect(() => {
     getTermsAndConditions(setTerms);
@@ -45,6 +48,11 @@ export default function TermsAndConditions() {
     setOpen(false);
   }
 
+  const handleViewClose = () => {
+    setViewItem(null);
+    setViewItem(false)
+  }
+
   const handleEdit = (item) => {
     setOpen(true);
     setIsEdit(true);
@@ -57,7 +65,8 @@ export default function TermsAndConditions() {
   }
   
   const handleView = (item) => {
-    console.log("View", item);
+    setSelectedItem(item);
+    setViewItem(true);
   }
 
   const renderTerms = () => {
@@ -73,7 +82,7 @@ export default function TermsAndConditions() {
     );
     }
     return terms.map((item, index) => (
-      <TermsAndConditionsCard key={index} item={item} edit={handleEdit} deleteItem={handleDelete} />
+      <TermsAndConditionsCard key={index} item={item} edit={handleEdit} deleteItem={handleDelete} view={handleView}/>
     ));
   }
   return (
@@ -112,11 +121,16 @@ export default function TermsAndConditions() {
       </Box>
     </Fade>
     <NewTermsModal 
-    open={open} 
-    handleClose={handleClose}
-    isEdit={isEdit}
-    editItem={editItem}
-    setIsEdit={setIsEdit}/>
+      open={open} 
+      handleClose={handleClose}
+      isEdit={isEdit}
+      editItem={editItem}
+      setIsEdit={setIsEdit}/>
+    <ViewTermsModal
+      item={selectedItem}
+      open={viewItem}
+      handleClose={handleViewClose}
+       />
     </>
   )
 }
