@@ -12,7 +12,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { useNavigate } from "react-router-dom";
 import NewTermsModal from "../components/modal/NewTermsModal";
 import { useEffect, useState } from "react";
-import { getTermsAndConditions } from "../service/cms.service";
+import { deleteTermsAndConditions, getTermsAndConditions } from "../service/cms.service";
 import { TermsAndConditionsCard } from "../components/card/TermsAndConditionsCard";
 
 
@@ -32,6 +32,10 @@ export default function TermsAndConditions() {
     console.log(editItem)
   }, [editItem]);
 
+  useEffect(() => {
+    console.log(terms)
+  }, [terms]);
+
   const handleOpen = () => {
     setIsEdit(false);
     setOpen(true);
@@ -48,7 +52,8 @@ export default function TermsAndConditions() {
   }
 
   const handleDelete = (item) => {
-    console.log("Delete", item);
+    deleteTermsAndConditions(item.id);
+    console.log("Deleted", item);
   }
   
   const handleView = (item) => {
@@ -68,7 +73,7 @@ export default function TermsAndConditions() {
     );
     }
     return terms.map((item, index) => (
-      <TermsAndConditionsCard key={index} item={item} edit={handleEdit}  />
+      <TermsAndConditionsCard key={index} item={item} edit={handleEdit} deleteItem={handleDelete} />
     ));
   }
   return (

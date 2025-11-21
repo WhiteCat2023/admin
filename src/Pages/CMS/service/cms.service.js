@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, onSnapshot, serverTimestamp, updateDoc, } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc, } from "firebase/firestore";
 import { db } from "../../../utils/config/firebase";
 
 export const newTermsAndConditions = async (termsData) => {
@@ -46,4 +46,15 @@ export const updateTermsAndConditions = async (termsId, updatedData) => {
         console.error("Error updating Terms and Conditions: ", error);
         return false;
     }
+}
+
+export const deleteTermsAndConditions = async (termsId) => {
+    if (!termsId) throw new Error("Invalid terms ID provided.");
+    try {
+        const termsRef = doc(db, 'termsAndConditions', termsId);
+        await deleteDoc(termsRef);
+    } catch (error) {
+        console.error("Error deleting Terms and Conditions: ", error);
+        return false;
+    }   
 }

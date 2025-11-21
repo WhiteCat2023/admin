@@ -17,7 +17,7 @@ export function TermsAndConditionsCard({
   key,
   item,
   edit,
-  deleteItem = () => {},
+  deleteItem,
   viewItem = () => {},
 }) {
   return (
