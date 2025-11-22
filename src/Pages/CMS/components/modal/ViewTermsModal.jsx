@@ -1,6 +1,7 @@
 import {
   Alert,
   AlertTitle,
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -9,6 +10,7 @@ import {
   DialogTitle,
   TextField,
   TextareaAutosize,
+  Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../../context/AuthContext";
@@ -24,11 +26,13 @@ function ViewTermsModal({ item, open, handleClose }) {
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle color="success">{item?.tc_title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{item?.tc_content}</DialogContentText>
+        <Box sx={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+          <Typography variant="body2">{item?.tc_content}</Typography>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button color="success" onClick={handleClose}>
-          Cancel
+          Close
         </Button>
       </DialogActions>
     </Dialog>

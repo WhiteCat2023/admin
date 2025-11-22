@@ -7,6 +7,7 @@ import {
   CardHeader,
   Icon,
   IconButton,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import React from "react";
@@ -55,20 +56,25 @@ export function TermsAndConditionsCard({
       <CardActions
         sx={{ display: "flex", gap: 1, alignItems: "center", mt: 1, mb: 2 }}
       >
-        <IconButton
-          onClick={(e) => {
+        <Tooltip title="Edit Terms and Conditions">
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              edit(item);
+            }}
+          >
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        
+        <Tooltip title="Delete Terms and Conditions">
+          <IconButton onClick={(e) => {
             e.stopPropagation();
-            edit(item);
-          }}
-        >
-          <EditIcon />
+            deleteItem(item);
+          }}>
+            <DeleteIcon />
         </IconButton>
-        <IconButton onClick={(e) => {
-          e.stopPropagation();
-          deleteItem(item);
-        }}>
-          <DeleteIcon />
-        </IconButton>
+        </Tooltip>
       </CardActions>
     </Card>
   );
