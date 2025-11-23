@@ -23,6 +23,11 @@ export const getTermsAndConditions = async (callback) => {
                 id: doc.id,
                 ...doc.data()
             }));
+            terms.sort((a, b) => {
+                const dateA = a.tc_date?.toMillis() || 0;
+                const dateB = b.tc_date?.toMillis() || 0;
+                return dateA - dateB;
+            });
             callback(terms);
         });
     

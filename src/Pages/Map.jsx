@@ -27,11 +27,12 @@ import { getAllReports } from "../utils/controller/report.controller";
 import { HttpStatus } from "../utils/enums/status";
 import { getTierColor } from "../utils/helpers";
 import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
+import { getAllSOS } from "../utils/services/firebase/sos.services";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const GOOGLE_MAPS_ID = import.meta.env.VITE_GOOGLE_MAPS_ID;
 
-function ReportListItem({ item, isSelected, onCardClick }) {
+function ReportListItem({ item, isSelected, onCardClick, isSos }) {
   const formattedDate = item.timestamp?.toDate
     ? format(item.timestamp.toDate(), "MMM d | h:mma")
     : "";
@@ -76,21 +77,13 @@ function ReportListItem({ item, isSelected, onCardClick }) {
                 fontWeight={700}
                 fontSize={16}
               >
-                {item.title}
+                {isSos ? item.firstName : item.title}
               </Typography>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                fontSize={12}
-              >
+              <Typography variant="body1" color="text.secondary" fontSize={12}>
                 {formattedDate}
               </Typography>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                fontSize={12}
-              >
-                Status: {item.status}
+              <Typography variant="body1" color="text.secondary" fontSize={12}>
+                Status: {item.status || "N/A"}
               </Typography>
             </Box>
             <Box>
@@ -112,7 +105,7 @@ function ReportListItem({ item, isSelected, onCardClick }) {
                     verticalAlign: "middle",
                   }}
                 ></Typography>
-                {item.tier}
+                {item?.tier || "N/A"}
               </Typography>
             </Box>
           </Box>
@@ -131,6 +124,9 @@ function Map() {
   const mapRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const [filter, setFilter] = useState("reports");
+  const [sosReports, setSosReports] = useState([]);
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -147,11 +143,44 @@ function Map() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    console.log(sosReports);
+  }, [sosReports]);
+
+  const pillButton = {
+    borderRadius: "5px", // slightly larger pill radius like picture
+    textTransform: "none",
+    padding: "2px 4px", // comfortable padding
+    // border: "1px solid #084518",
+    color: "#084518",
+    backgroundColor: "transparent",
+    fontFamily: '"Poppins", sans-serif',
+    minHeight: 40,
+    "& .MuiButton-startIcon": {
+      // ensure icon matches text color
+      color: "inherit",
+    },
+    "&:hover": {
+      backgroundColor: "rgba(46,213,115,0.06)",
+    },
+  };
+
+  const pillButtonFilled = {
+    ...pillButton,
+    backgroundColor: "#34A853",
+    color: "#fff",
+    minWidth: 96, // make the filled pill slightly wider like picture
+    boxShadow: "none",
+    "&:hover": { backgroundColor: "#26c061" },
+  };
+
   const fetchData = async () => {
     setShowContent(false);
     try {
       const result = await getAllReports();
+      const sosResult = await getAllSOS();
       if (result.status === HttpStatus.OK) {
+        setSosReports(sosResult);
         setReports(result.data);
         console.log(result.data);
       }
@@ -174,22 +203,22 @@ function Map() {
     }
   };
 
-  const filteredReports = useMemo(
-    () =>
-      reports.filter(
-        (report) =>
-          (filterStatus === "All" || report.status === filterStatus) &&
-          ((report.title || "")
+  const filteredReports = useMemo(() => {
+    let dataToFilter = filter === "reports" ? reports : sosReports;
+    
+    return dataToFilter.filter(
+      (item) =>
+        (filterStatus === "All" || item.status === filterStatus) &&
+        (((item.title || item.firstName || "")
+          .toLowerCase()
+          .includes(searchText.toLowerCase())) ||
+          ((item.description || item.contactNumber || "")
             .toLowerCase()
-            .includes(searchText.toLowerCase()) ||
-            (report.description || "")
-              .toLowerCase()
-              .includes(searchText.toLowerCase()))
-      ),
-    [reports, searchText, filterStatus]
-  );
+            .includes(searchText.toLowerCase())))
+    );
+  }, [reports, sosReports, searchText, filterStatus, filter]);
 
-  function Direction({ selectedItem }) {
+  function Direction({ selectedItem, isSos }) {
     const map = useMap();
     const routesLibrary = useMapsLibrary("routes");
     const [directionsService, setDirectionsService] = useState(null);
@@ -238,8 +267,23 @@ function Map() {
       // ✅ Clear any previous directions before new request
       directionsRenderer.setDirections({ routes: [] });
 
-      const [lng, lat] = selectedItem.location.map(Number);
-      if (isNaN(lat) || isNaN(lng)) return;
+      let lat, lng;
+
+      if(!isSos){
+        const [lng_temp, lat_temp] = selectedItem.location.map(Number);
+        lat = lat_temp;
+        lng = lng_temp;
+        if (isNaN(lat) || isNaN(lng)) return;
+      } else {
+        const loc = selectedItem.location;
+        console.log(loc);
+        lat = loc.lat;
+        lng = loc.lng;
+        console.log(lat,lng);
+        if (isNaN(lat) || isNaN(lng)) return;
+      }
+
+
 
       const origin = { lat: 10.2943, lng: 123.8935 }; // Replace with your desired origin
       const destination = { lat, lng };
@@ -261,7 +305,7 @@ function Map() {
           }
         })
         .catch((err) => console.error("Error fetching directions:", err));
-    }, [selectedItem, directionsService, directionsRenderer, routesLibrary]);
+    }, [selectedItem, directionsService, directionsRenderer, routesLibrary, isSos]);
 
     // Update displayed route index dynamically
     useEffect(() => {
@@ -369,11 +413,13 @@ function Map() {
             height: "81vh",
           }}
         >
-          <Box sx={{
-            backgroundColor: "#fff",
-            flex: 1,
-            display: "flex"
-          }}>
+          <Box
+            sx={{
+              backgroundColor: "#fff",
+              flex: 1,
+              display: "flex",
+            }}
+          >
             {/* Left side list */}
             <Box sx={{ width: "40%", p: 2, overflowY: "auto" }}>
               <Box
@@ -399,6 +445,34 @@ function Map() {
                     alignItems: "center",
                   }}
                 >
+                  <Box
+                    sx={{
+                      padding: 0.5,
+                      display: "flex",
+                      gap: 1,
+                      border: "1px solid #084518",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    <Button
+                      onClick={() => {
+                        setFilter("reports");
+                        setSelectedItem(null);
+                      }}
+                      sx={filter === "reports" ? pillButtonFilled : pillButton}
+                    >
+                      Reports
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setFilter("sos");
+                        setSelectedItem(null);
+                      }}
+                      sx={filter === "sos" ? pillButtonFilled : pillButton}
+                    >
+                      SOS
+                    </Button>
+                  </Box>
                   <IconButton
                     sx={{
                       display: "flex",
@@ -426,10 +500,18 @@ function Map() {
                     transformOrigin={{ horizontal: "right", vertical: "top" }}
                     anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                   >
-                    <MenuItem onClick={() => handleFilterClick("All")}>All</MenuItem>
-                    <MenuItem onClick={() => handleFilterClick("pending")}>Pending</MenuItem>
-                    <MenuItem onClick={() => handleFilterClick("responded")}>Responded</MenuItem>
-                    <MenuItem onClick={() => handleFilterClick("ignored")}>Ignored</MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("All")}>
+                      All
+                    </MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("pending")}>
+                      Pending
+                    </MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("responded")}>
+                      Responded
+                    </MenuItem>
+                    <MenuItem onClick={() => handleFilterClick("ignored")}>
+                      Ignored
+                    </MenuItem>
                   </Menu>
                 </Box>
               </Box>
@@ -440,7 +522,7 @@ function Map() {
                   color="text.secondary"
                   sx={{ textAlign: "center", py: 4 }}
                 >
-                  No reports available
+                  No {filter} available
                 </Typography>
               ) : (
                 filteredReports.map((item) => (
@@ -449,26 +531,25 @@ function Map() {
                     item={item}
                     isSelected={selectedItem && selectedItem.id === item.id}
                     onCardClick={handleCardClick}
+                    isSos={filter === "sos"}
                   />
                 ))
               )}
             </Box>
 
             {/* Right side map */}
-            <Box sx={{ flex: 1, position: "relative", padding: 2, }}>
+            <Box sx={{ flex: 1, position: "relative", padding: 2 }}>
               <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
                 <GoogleMap
                   defaultZoom={16}
                   defaultCenter={{ lat: 10.309, lng: 123.893 }}
-                  options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID }}
+                  options={{ gestureHandling: "greedy", mapId: GOOGLE_MAPS_ID, fullscreenControl: true }}
                   style={{ width: "100%", height: "100%", borderRadius: 2 }}
                   onLoad={onLoad}
-                  fullscreenControl={true}
-
                 >
                   {selectedItem
                     ? null
-                    : reports.map((item) =>
+                    : (filter === "reports" ? reports : sosReports).map((item) =>
                         item.location &&
                         item.location.length >= 2 &&
                         !isNaN(parseFloat(item.location[1])) &&
@@ -476,18 +557,19 @@ function Map() {
                           <AdvancedMarker
                             key={item.id}
                             position={{
-                              lat: parseFloat(item.location[1]),
-                              lng: parseFloat(item.location[0]),
+                              lat: parseFloat(filter === "sos" ? item.location[0] : item.location[1]),
+                              lng: parseFloat(filter === "sos" ? item.location[1] : item.location[0]),
                             }}
                           />
                         ) : null
                       )}
-                  <Direction selectedItem={selectedItem} />
+                  <Direction selectedItem={selectedItem} isSos={filter === "sos"} />
                 </GoogleMap>
               </APIProvider>
             </Box>
           </Box>
         </Box>
+        
       </Box>
     </Fade>
   );
